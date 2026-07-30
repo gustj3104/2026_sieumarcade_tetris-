@@ -1,0 +1,238 @@
+.app-root {
+  position: fixed;
+  inset: 0;
+  background: #05060f;
+}
+
+/* ---------------- Game screen / canvas ---------------- */
+
+.game-screen {
+  position: absolute;
+  inset: 0;
+}
+
+.game-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------------- HUD ---------------- */
+
+.hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  font-family: "Consolas", "SFMono-Regular", monospace;
+}
+
+.hud-corner {
+  position: absolute;
+  top: clamp(12px, 2vh, 28px);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-shadow: 0 0 10px rgba(120, 200, 255, 0.65);
+}
+
+.hud-top-left {
+  left: clamp(12px, 2vw, 32px);
+}
+
+.hud-top-right {
+  right: clamp(12px, 2vw, 32px);
+  align-items: flex-end;
+  flex-direction: row;
+  gap: clamp(10px, 2vw, 28px);
+}
+
+.hud-label {
+  font-size: clamp(11px, 1.1vw, 15px);
+  letter-spacing: 0.12em;
+  color: #7fe9ff;
+}
+
+.hud-sub {
+  font-size: clamp(9px, 0.9vw, 12px);
+  letter-spacing: 0.16em;
+  color: rgba(200, 230, 255, 0.65);
+}
+
+.hud-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.hud-value {
+  font-size: clamp(16px, 2vw, 26px);
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.hud-paused {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(18px, 3vw, 34px);
+  letter-spacing: 0.2em;
+  color: #ffe066;
+  text-shadow: 0 0 18px rgba(255, 220, 100, 0.7);
+}
+
+/* ---------------- Admin panel ---------------- */
+
+.admin-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(4, 6, 16, 0.92);
+  backdrop-filter: blur(6px);
+  overflow-y: auto;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+}
+
+.admin-panel-closed {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.admin-panel-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.admin-panel-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 28px 24px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-header h1 {
+  font-size: 22px;
+  letter-spacing: 0.15em;
+  color: #7fe9ff;
+  margin: 0;
+}
+
+.admin-close {
+  background: transparent;
+  border: 1px solid rgba(150, 190, 255, 0.4);
+  color: #eaf2ff;
+  border-radius: 6px;
+  padding: 6px 12px;
+}
+
+.admin-section {
+  border: 1px solid rgba(120, 160, 255, 0.18);
+  border-radius: 10px;
+  padding: 16px 18px;
+  background: rgba(12, 16, 32, 0.55);
+}
+
+.admin-section h2 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  color: #9fdfff;
+}
+
+.admin-section textarea {
+  width: 100%;
+  resize: vertical;
+  background: #0a0d1c;
+  color: #eaf2ff;
+  border: 1px solid rgba(120, 160, 255, 0.25);
+  border-radius: 6px;
+  padding: 10px;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.admin-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.admin-count {
+  font-family: "Consolas", monospace;
+  color: #7fe9ff;
+}
+
+.admin-warning {
+  margin-top: 10px;
+  color: #ffb84d;
+  font-size: 13px;
+}
+
+.admin-panel button {
+  background: linear-gradient(180deg, #2a3358, #171c33);
+  border: 1px solid rgba(150, 190, 255, 0.4);
+  color: #eaf2ff;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+}
+
+.admin-panel button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.admin-panel button:hover:not(:disabled) {
+  border-color: #7fe9ff;
+}
+
+.admin-slider {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 14px;
+  font-size: 13px;
+  color: #cfe4ff;
+}
+
+.admin-hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: rgba(200, 220, 255, 0.7);
+}
+
+.admin-danger {
+  border-color: rgba(255, 90, 100, 0.35);
+}
+
+.admin-end {
+  background: linear-gradient(180deg, #4a1f2a, #2a1017);
+  border-color: rgba(255, 120, 130, 0.5);
+}
+
+.admin-end-confirm {
+  background: #ff4d5e;
+  border-color: #ffffff;
+  color: #1a0004;
+  font-weight: 700;
+}
+
+.admin-shortcuts ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  color: rgba(210, 225, 255, 0.85);
+  line-height: 1.7;
+}
