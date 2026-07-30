@@ -93,6 +93,9 @@ export interface GameSnapshot {
   round: number;
   blocksSpawned: number;
   linesCleared: number;
+  level: number;
+  /** Next participants in play order, for the audience-facing preview panels. */
+  upcoming: Participant[];
   lastLanding: LandingEvent | null;
   lastLineClear: LineClearEvent | null;
   settings: GameSettings;

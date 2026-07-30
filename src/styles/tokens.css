@@ -1,0 +1,28 @@
+:root {
+  --bg: #050505;
+  --panel-bg: #080808;
+
+  --brick-light: #bcbcbc;
+  --brick-mid: #777777;
+  --brick-dark: #303030;
+
+  --text-white: #f4f4e8;
+  --text-muted: #b8b8b0;
+  --accent-orange: #f28c00;
+  --accent-yellow: #ffc400;
+  --accent-cyan: #18bfe8;
+  --accent-red: #e73716;
+
+  --block-cyan: #14a9c8;
+  --block-yellow: #e9c400;
+  --block-purple: #8734c5;
+  --block-orange: #e97800;
+  --block-blue: #1767cc;
+  --block-green: #4bad16;
+  --block-red: #d93118;
+
+  --pixel-border: 3px;
+
+  --font-pixel: "Press Start 2P", "Courier New", "Consolas", monospace;
+  --font-kr: "Pretendard", "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif;
+}

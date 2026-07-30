@@ -1,0 +1,26 @@
+/* DOM tetromino preview blocks - shares the same flat/beveled look as the
+   canvas board (see rendering/blockRenderer.ts) so the NEXT panels read as
+   the same block style as the game itself. */
+
+.tetromino-preview {
+  display: grid;
+  flex: none;
+}
+
+.tetromino-preview-cell {
+  position: relative;
+  box-sizing: border-box;
+  border: 2px solid #000;
+  box-shadow:
+    inset 2px 2px 0 rgba(255, 255, 255, 0.55),
+    inset -2px -2px 0 rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-kr);
+  font-weight: 800;
+  color: var(--text-white);
+  text-shadow: 1px 1px 0 #000;
+  line-height: 1;
+  overflow: hidden;
+}

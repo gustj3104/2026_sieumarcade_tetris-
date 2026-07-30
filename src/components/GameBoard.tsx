@@ -1,16 +1,15 @@
 import { useEffect, useRef } from "react";
-import { engine } from "../state/gameStore";
+import { engine, useGameSnapshot } from "../state/gameStore";
 import { GameRenderer } from "../rendering/renderer";
-import { ScoreBoard } from "./ScoreBoard";
-import { FinaleOverlay } from "./FinaleOverlay";
+import { PixelFrame } from "./PixelFrame";
 
 /**
- * The audience-facing surface: a full-bleed canvas driving its own
- * requestAnimationFrame loop (ticks the engine + draws every frame) plus a
- * thin React HUD on top. Never renders admin controls.
+ * The board itself: a full-bleed canvas inside its own panel, driving its own
+ * requestAnimationFrame loop (ticks the engine + draws every frame).
  */
-export function GameScreen() {
+export function GameBoard() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const snap = useGameSnapshot();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -55,10 +54,10 @@ export function GameScreen() {
   }, []);
 
   return (
-    <div className="game-screen">
+    <PixelFrame className="board-panel">
       <canvas ref={canvasRef} className="game-canvas" />
-      <ScoreBoard />
-      <FinaleOverlay />
-    </div>
+      {snap.phase === "paused" && <div className="board-overlay-message">PAUSED</div>}
+      {snap.phase === "setup" && <div className="board-overlay-message">PRESS ESC FOR ADMIN</div>}
+    </PixelFrame>
   );
 }

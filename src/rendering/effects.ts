@@ -34,55 +34,68 @@ export class FlashEffect {
   }
 }
 
-/** Dark arcade backdrop: faint grid, vignette, scanlines. Cheap enough to redraw every frame. */
+interface Star {
+  x: number;
+  y: number;
+  size: number;
+  phase: number;
+}
+
+let starField: Star[] = [];
+let starFieldKey = "";
+
+function ensureStars(width: number, height: number): Star[] {
+  const key = `${Math.round(width / 40)}x${Math.round(height / 40)}`;
+  if (key !== starFieldKey) {
+    starFieldKey = key;
+    const count = Math.round((width * height) / 9000);
+    starField = Array.from({ length: count }, () => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      size: Math.random() < 0.85 ? 1 : 2,
+      phase: Math.random() * Math.PI * 2,
+    }));
+  }
+  return starField;
+}
+
+/**
+ * Near-black arcade backdrop: a handful of static pixel stars, a very faint
+ * vignette, and a subtle CRT scanline pass. Deliberately avoids neon grids,
+ * glow bands, or gradients - the flat black cabinet look from the reference
+ * screenshots rather than a modern glass HUD.
+ */
 export function drawBackground(ctx: CanvasRenderingContext2D, width: number, height: number, clock: number): void {
   ctx.save();
-  ctx.fillStyle = "#05060f";
+  ctx.fillStyle = "#050505";
   ctx.fillRect(0, 0, width, height);
 
-  const gridSize = 28;
-  ctx.strokeStyle = "rgba(80, 120, 200, 0.08)";
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  for (let x = 0; x <= width; x += gridSize) {
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, height);
+  const stars = ensureStars(width, height);
+  for (const star of stars) {
+    const twinkle = 0.5 + 0.5 * Math.sin(clock / 900 + star.phase);
+    ctx.globalAlpha = 0.25 + twinkle * 0.45;
+    ctx.fillStyle = "#f4f4e8";
+    ctx.fillRect(star.x, star.y, star.size, star.size);
   }
-  for (let y = 0; y <= height; y += gridSize) {
-    ctx.moveTo(0, y);
-    ctx.lineTo(width, y);
-  }
-  ctx.stroke();
+  ctx.globalAlpha = 1;
 
   const vignette = ctx.createRadialGradient(
     width / 2,
     height / 2,
-    Math.min(width, height) * 0.2,
+    Math.min(width, height) * 0.35,
     width / 2,
     height / 2,
     Math.max(width, height) * 0.75,
   );
   vignette.addColorStop(0, "rgba(0,0,0,0)");
-  vignette.addColorStop(1, "rgba(0,0,0,0.65)");
+  vignette.addColorStop(1, "rgba(0,0,0,0.45)");
   ctx.fillStyle = vignette;
   ctx.fillRect(0, 0, width, height);
 
-  ctx.fillStyle = "rgba(0,0,0,0.12)";
+  ctx.fillStyle = "rgba(0,0,0,0.10)";
   const scanStep = 4;
-  const offset = Math.floor(clock / 60) % scanStep;
-  for (let y = offset; y < height; y += scanStep) {
+  for (let y = 0; y < height; y += scanStep) {
     ctx.fillRect(0, y, width, 1);
-  }
-
-  // occasional subtle horizontal glitch band
-  const glitchPhase = Math.floor(clock / 2200) % 40;
-  if (glitchPhase === 0) {
-    const bandY = (clock * 0.37) % height;
-    const bandH = 6 + Math.random() * 10;
-    ctx.globalAlpha = 0.15;
-    ctx.fillStyle = "#66e0ff";
-    ctx.fillRect(0, bandY, width, bandH);
-    ctx.globalAlpha = 1;
   }
 
   ctx.restore();

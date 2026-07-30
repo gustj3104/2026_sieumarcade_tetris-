@@ -1,3 +1,4 @@
+import { ALL_TETROMINO_TYPES } from "../types/game";
 import type { Participant, PieceCellDef, TetrominoType } from "../types/game";
 import { TETROMINO_COLORS, getShapeCells } from "./tetrominoes";
 import type { ActivePiece } from "../types/game";
@@ -62,6 +63,31 @@ export function createNameBlock(
 }
 
 const SHAPE_SPAWN_OFFSET = 2;
+
+/**
+ * Deterministic shape assignment used only for the NEXT / NEXT PLAYERS
+ * preview panels (an upcoming participant's actual in-game shape depends on
+ * the live 7-bag + safe-placement fallback at the moment it spawns, which
+ * can't be known ahead of time without simulating the whole board). Hashing
+ * the participant id keeps a given participant's preview stable across
+ * re-renders instead of flickering between shapes every frame.
+ */
+export function previewShapeForParticipant(participant: Participant): {
+  type: TetrominoType;
+  colorIndex: number;
+  cells: PieceCellDef[];
+} {
+  let hash = 0;
+  for (let i = 0; i < participant.id.length; i++) {
+    hash = (hash * 31 + participant.id.charCodeAt(i)) >>> 0;
+  }
+  const type = ALL_TETROMINO_TYPES[hash % ALL_TETROMINO_TYPES.length];
+  return {
+    type,
+    colorIndex: TETROMINO_COLORS[type],
+    cells: buildPieceCells(participant),
+  };
+}
 
 export function pieceCellPositions(
   piece: Pick<ActivePiece, "type" | "rotation" | "x"> & { y: number },

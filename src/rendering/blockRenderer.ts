@@ -2,36 +2,40 @@ export interface CellPalette {
   base: string;
   light: string;
   dark: string;
-  glow: string;
 }
 
-/** colorIndex -> palette, matching TETROMINO_COLORS in game/tetrominoes.ts (I,O,T,L,J,S,Z). */
+/**
+ * colorIndex -> palette, matching TETROMINO_COLORS in game/tetrominoes.ts
+ * (I,O,T,L,J,S,Z). Mirrors the classic NES Tetris convention (cyan I, yellow
+ * O, purple T, orange L, blue J, green S, red Z) and the --block-* tokens in
+ * styles/tokens.css, so canvas blocks and the DOM preview blocks match.
+ */
 export const TETROMINO_PALETTE: Record<number, CellPalette> = {
-  0: { base: "#00b7d6", light: "#8ef3ff", dark: "#053f4d", glow: "#00e5ff" },
-  1: { base: "#d6ad00", light: "#ffe988", dark: "#4d3c00", glow: "#ffd400" },
-  2: { base: "#9330cf", light: "#dcabff", dark: "#3a1152", glow: "#c268ff" },
-  3: { base: "#d97614", light: "#ffc07a", dark: "#4d2900", glow: "#ff9433" },
-  4: { base: "#2f66d6", light: "#a3c3ff", dark: "#122a52", glow: "#5b93ff" },
-  5: { base: "#2fb056", light: "#a3f5bd", dark: "#0f3d1f", glow: "#57ff81" },
-  6: { base: "#d63a51", light: "#ff9daa", dark: "#4d1119", glow: "#ff5468" },
+  0: { base: "#14a9c8", light: "#7fe3f5", dark: "#0a4a58" }, // I - cyan
+  1: { base: "#e9c400", light: "#fff08a", dark: "#5c4e00" }, // O - yellow
+  2: { base: "#8734c5", light: "#caa0ff", dark: "#341254" }, // T - purple
+  3: { base: "#e97800", light: "#ffb366", dark: "#5c2f00" }, // L - orange
+  4: { base: "#1767cc", light: "#7fb0ff", dark: "#0a2c54" }, // J - blue
+  5: { base: "#4bad16", light: "#a3e878", dark: "#1c4208" }, // S - green
+  6: { base: "#d93118", light: "#ff9d85", dark: "#4d1108" }, // Z - red
 };
 
-function roundRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number): void {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
-}
-
 export interface DrawCellOptions {
-  glow?: number;
-  extraGlow?: string;
+  /** The currently-falling piece: gets a thin bright outline instead of a blurred glow. */
+  active?: boolean;
+  /** 0..1 solid white overlay, used for the line-clear flash beat. */
+  whiteFlash?: number;
 }
 
-/** Draws one board/piece cell: beveled fill, neon outline, and its 1-2 character label. */
+/**
+ * Draws one flat, beveled pixel-art block: black outline, solid fill, a
+ * light top/left bevel strip and a dark bottom/right one (the classic
+ * NES-sprite trick for implying a 3D block with zero gradients/blur).
+ *
+ * `isEmpty` cells (a name shorter than 4 chars) still get the full opaque
+ * block treatment - only the character glyph is skipped - so a landed piece
+ * never shows a transparent gap.
+ */
 export function drawCell(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -43,58 +47,66 @@ export function drawCell(
   options: DrawCellOptions = {},
 ): void {
   const palette = TETROMINO_PALETTE[colorIndex] ?? TETROMINO_PALETTE[0];
-  const pad = size * 0.045;
-  const w = size - pad * 2;
-  const h = size - pad * 2;
-  const gx = x + pad;
-  const gy = y + pad;
-  const r = size * 0.14;
+  const gap = Math.max(1, size * 0.03);
+  const bx = x + gap;
+  const by = y + gap;
+  const bw = size - gap * 2;
+  const bh = size - gap * 2;
+  const border = Math.max(1.5, size * 0.05);
+  const bevel = Math.max(2, size * 0.14);
 
   ctx.save();
-  if (options.glow) {
-    ctx.shadowColor = options.extraGlow ?? palette.glow;
-    ctx.shadowBlur = options.glow;
+
+  // Black pixel outline.
+  ctx.fillStyle = "#000000";
+  ctx.fillRect(bx, by, bw, bh);
+
+  // Solid base fill.
+  const ix = bx + border;
+  const iy = by + border;
+  const iw = bw - border * 2;
+  const ih = bh - border * 2;
+  ctx.fillStyle = palette.base;
+  ctx.fillRect(ix, iy, iw, ih);
+
+  // Light bevel: top + left.
+  ctx.fillStyle = palette.light;
+  ctx.fillRect(ix, iy, iw, bevel);
+  ctx.fillRect(ix, iy, bevel, ih);
+
+  // Dark bevel: bottom + right.
+  ctx.fillStyle = palette.dark;
+  ctx.fillRect(ix, iy + ih - bevel, iw, bevel);
+  ctx.fillRect(ix + iw - bevel, iy, bevel, ih);
+
+  if (options.active) {
+    ctx.strokeStyle = "#f4f4e8";
+    ctx.lineWidth = Math.max(1, size * 0.06);
+    ctx.strokeRect(bx + ctx.lineWidth / 2, by + ctx.lineWidth / 2, bw - ctx.lineWidth, bh - ctx.lineWidth);
   }
 
-  const grad = ctx.createLinearGradient(gx, gy, gx, gy + h);
-  if (isEmpty) {
-    grad.addColorStop(0, palette.dark);
-    grad.addColorStop(1, palette.dark);
-  } else {
-    grad.addColorStop(0, palette.light);
-    grad.addColorStop(0.45, palette.base);
-    grad.addColorStop(1, palette.dark);
-  }
-  ctx.fillStyle = grad;
-  roundRectPath(ctx, gx, gy, w, h, r);
-  ctx.fill();
-  ctx.shadowBlur = 0;
-
-  if (!isEmpty) {
-    ctx.strokeStyle = "rgba(255,255,255,0.5)";
-    ctx.lineWidth = Math.max(1, size * 0.035);
-    ctx.beginPath();
-    ctx.moveTo(gx + w * 0.12, gy + h * 0.08);
-    ctx.lineTo(gx + w * 0.88, gy + h * 0.08);
-    ctx.stroke();
+  if (options.whiteFlash) {
+    ctx.globalAlpha = Math.max(0, Math.min(1, options.whiteFlash));
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(bx, by, bw, bh);
+    ctx.globalAlpha = 1;
   }
 
-  ctx.strokeStyle = isEmpty ? "rgba(255,255,255,0.12)" : palette.glow;
-  ctx.lineWidth = Math.max(1, size * 0.05);
-  roundRectPath(ctx, gx, gy, w, h, r);
-  ctx.stroke();
   ctx.restore();
 
   if (!isEmpty && char) {
     ctx.save();
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    const fontSize = char.length > 1 ? size * 0.32 : size * 0.46;
-    ctx.font = `800 ${fontSize}px "Malgun Gothic", "Apple SD Gothic Neo", "Pretendard", sans-serif`;
-    ctx.shadowColor = "rgba(0,0,0,0.65)";
-    ctx.shadowBlur = size * 0.08;
-    ctx.fillStyle = "#f8fbff";
-    ctx.fillText(char, x + size / 2, y + size / 2 + size * 0.02);
+    const fontSize = char.length > 1 ? size * 0.34 : size * 0.5;
+    ctx.font = `800 ${fontSize}px "Pretendard", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif`;
+    const cx = x + size / 2;
+    const cy = y + size / 2 + size * 0.02;
+    // Hard 1px offset shadow instead of shadowBlur - keeps text crisp/pixel-flat.
+    ctx.fillStyle = "#000000";
+    ctx.fillText(char, cx + Math.max(1, size * 0.03), cy + Math.max(1, size * 0.03));
+    ctx.fillStyle = "#f4f4e8";
+    ctx.fillText(char, cx, cy);
     ctx.restore();
   }
 }

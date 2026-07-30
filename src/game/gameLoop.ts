@@ -358,6 +358,28 @@ export class TetrisEngine {
     return this.playQueue.shift() as Participant;
   }
 
+  /**
+   * Non-mutating preview of the next `count` participants for the NEXT
+   * panels. Reads straight off the live queue; once the queue runs dry it
+   * pads with the roster in original order (an approximation of the round
+   * that hasn't been shuffled yet, since that shuffle only happens lazily).
+   */
+  private peekUpcoming(count: number): Participant[] {
+    const result: Participant[] = [];
+    if (this.originalParticipants.length === 0) return result;
+    let i = 0;
+    while (result.length < count) {
+      if (i < this.playQueue.length) {
+        result.push(this.playQueue[i]);
+      } else {
+        const idx = (i - this.playQueue.length) % this.originalParticipants.length;
+        result.push(this.originalParticipants[idx]);
+      }
+      i += 1;
+    }
+    return result;
+  }
+
   private drawType(): TetrominoType {
     if (this.pendingTypeOverrides.length > 0) {
       return this.pendingTypeOverrides.shift() as TetrominoType;
@@ -426,6 +448,8 @@ export class TetrisEngine {
       round: this.round,
       blocksSpawned: this.blocksSpawned,
       linesCleared: this.linesCleared,
+      level: Math.floor(this.linesCleared / 10) + 1,
+      upcoming: this.peekUpcoming(5),
       lastLanding: this.lastLanding,
       lastLineClear: this.lastLineClear,
       settings: this.settings,

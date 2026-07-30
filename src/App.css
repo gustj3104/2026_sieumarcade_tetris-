@@ -1,84 +1,10 @@
 .app-root {
   position: fixed;
   inset: 0;
-  background: #05060f;
-}
-
-/* ---------------- Game screen / canvas ---------------- */
-
-.game-screen {
-  position: absolute;
-  inset: 0;
-}
-
-.game-canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-/* ---------------- HUD ---------------- */
-
-.hud {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  font-family: "Consolas", "SFMono-Regular", monospace;
-}
-
-.hud-corner {
-  position: absolute;
-  top: clamp(12px, 2vh, 28px);
+  background: var(--bg, #050505);
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  text-shadow: 0 0 10px rgba(120, 200, 255, 0.65);
-}
-
-.hud-top-left {
-  left: clamp(12px, 2vw, 32px);
-}
-
-.hud-top-right {
-  right: clamp(12px, 2vw, 32px);
-  align-items: flex-end;
-  flex-direction: row;
-  gap: clamp(10px, 2vw, 28px);
-}
-
-.hud-label {
-  font-size: clamp(11px, 1.1vw, 15px);
-  letter-spacing: 0.12em;
-  color: #7fe9ff;
-}
-
-.hud-sub {
-  font-size: clamp(9px, 0.9vw, 12px);
-  letter-spacing: 0.16em;
-  color: rgba(200, 230, 255, 0.65);
-}
-
-.hud-block {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-}
-
-.hud-value {
-  font-size: clamp(16px, 2vw, 26px);
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.hud-paused {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: clamp(18px, 3vw, 34px);
-  letter-spacing: 0.2em;
-  color: #ffe066;
-  text-shadow: 0 0 18px rgba(255, 220, 100, 0.7);
+  align-items: center;
+  justify-content: center;
 }
 
 /* ---------------- Admin panel ---------------- */

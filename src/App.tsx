@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { GameScreen } from "./components/GameScreen";
+import { ArcadeShell } from "./components/ArcadeShell";
 import { AdminPanel } from "./components/AdminPanel";
 import { engine } from "./state/gameStore";
 import "./App.css";
@@ -81,7 +81,7 @@ function App() {
 
   return (
     <div className="app-root">
-      <GameScreen />
+      <ArcadeShell />
       <AdminPanel isOpen={adminOpen} onClose={() => setAdminOpen(false)} />
     </div>
   );

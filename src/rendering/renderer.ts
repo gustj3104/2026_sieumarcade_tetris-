@@ -14,10 +14,11 @@ export interface BoardLayout {
   boardH: number;
 }
 
+/** The canvas now only fills the board's own panel, so it can use nearly all of it. */
 export function computeBoardLayout(width: number, height: number): BoardLayout {
-  const maxByHeight = (height * 0.94) / BOARD_ROWS;
-  const maxByWidth = (width * 0.62) / BOARD_COLS;
-  const cellSize = Math.max(12, Math.floor(Math.min(maxByHeight, maxByWidth)));
+  const maxByHeight = (height * 0.97) / BOARD_ROWS;
+  const maxByWidth = (width * 0.96) / BOARD_COLS;
+  const cellSize = Math.max(10, Math.floor(Math.min(maxByHeight, maxByWidth)));
   const boardW = cellSize * BOARD_COLS;
   const boardH = cellSize * BOARD_ROWS;
   return {
@@ -39,6 +40,28 @@ function getLogoImage(url: string): HTMLImageElement | null {
     logoImageCache.set(url, img);
   }
   return img.complete && img.naturalWidth > 0 ? img : null;
+}
+
+/** Flat pixel text: solid fill plus a hard 1-step offset shadow instead of shadowBlur. */
+function drawPixelText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  fontPx: number,
+  color: string,
+  font = '"Press Start 2P", "Consolas", monospace',
+): void {
+  ctx.save();
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `${fontPx}px ${font}`;
+  const offset = Math.max(2, fontPx * 0.07);
+  ctx.fillStyle = "#000000";
+  ctx.fillText(text, x + offset, y + offset);
+  ctx.fillStyle = color;
+  ctx.fillText(text, x, y);
+  ctx.restore();
 }
 
 export class GameRenderer {
@@ -72,8 +95,8 @@ export class GameRenderer {
     if (snapshot.lastLanding && snapshot.lastLanding.at !== this.prevLandingAt) {
       this.prevLandingAt = snapshot.lastLanding.at;
       const { x, y } = this.cellCenter(layout, snapshot.lastLanding.col + 1.5, snapshot.lastLanding.row + 1);
-      this.particles.spawnCellBurst(x - layout.cellSize / 2, y - layout.cellSize / 2, layout.cellSize, "#ffffff", 14);
-      this.shake.trigger(3.5);
+      this.particles.spawnCellBurst(x - layout.cellSize / 2, y - layout.cellSize / 2, layout.cellSize, "#f4f4e8", 10);
+      this.shake.trigger(2.5);
     }
 
     if (
@@ -88,12 +111,11 @@ export class GameRenderer {
           if (!cell) continue;
           const px = layout.originX + col * layout.cellSize;
           const py = layout.originY + row * layout.cellSize;
-          const palette = TETROMINO_PALETTE[cell.colorIndex] ?? TETROMINO_PALETTE[0];
-          this.particles.spawnCellBurst(px, py, layout.cellSize, palette.glow, 6);
+          this.particles.spawnCellBurst(px, py, layout.cellSize, "#ffc400", 5);
         }
       }
-      this.shake.trigger(4 + snapshot.clearingRows.length * 2.5);
-      this.flash.trigger(0.12 + snapshot.clearingRows.length * 0.08);
+      this.shake.trigger(3 + snapshot.clearingRows.length * 1.5);
+      this.flash.trigger(0.1 + snapshot.clearingRows.length * 0.06);
     }
 
     if (snapshot.finaleStep !== this.prevFinaleStep) {
@@ -101,7 +123,7 @@ export class GameRenderer {
       this.prevFinaleStep = entering;
       if (entering === "flash") {
         this.flash.trigger(0.85);
-        this.shake.trigger(10);
+        this.shake.trigger(8);
       } else if (entering === "explode") {
         for (let row = 0; row < BOARD_ROWS; row++) {
           for (let col = 0; col < BOARD_COLS; col++) {
@@ -109,14 +131,14 @@ export class GameRenderer {
             if (!cell) continue;
             const { x, y } = this.cellCenter(layout, col, row);
             const palette = TETROMINO_PALETTE[cell.colorIndex] ?? TETROMINO_PALETTE[0];
-            this.particles.spawnRadialBurst(x, y, palette.glow, 5, 220);
+            this.particles.spawnRadialBurst(x, y, palette.light, 5, 210);
           }
         }
-        this.shake.trigger(8);
+        this.shake.trigger(6);
       } else if (entering === "gather") {
         const cx = layout.originX + layout.boardW / 2;
         const cy = layout.originY + layout.boardH / 2;
-        const colors = Object.values(TETROMINO_PALETTE).map((p) => p.glow);
+        const colors = Object.values(TETROMINO_PALETTE).map((p) => p.light);
         for (let i = 0; i < 90; i++) {
           const angle = Math.random() * Math.PI * 2;
           const dist = Math.max(layout.boardW, layout.boardH) * (0.5 + Math.random() * 0.5);
@@ -132,11 +154,27 @@ export class GameRenderer {
     const { cellSize, originX, originY } = layout;
 
     ctx.save();
-    ctx.strokeStyle = "rgba(140,170,255,0.18)";
+    ctx.strokeStyle = "#4e4e4e";
     ctx.lineWidth = 2;
     ctx.strokeRect(originX - 3, originY - 3, layout.boardW + 6, layout.boardH + 6);
-    ctx.fillStyle = "rgba(6,10,26,0.55)";
+    ctx.fillStyle = "#050505";
     ctx.fillRect(originX, originY, layout.boardW, layout.boardH);
+
+    // Barely-there grid, per spec ("almost invisible").
+    ctx.strokeStyle = "rgba(255,255,255,0.04)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let c = 1; c < BOARD_COLS; c++) {
+      const x = originX + c * cellSize;
+      ctx.moveTo(x, originY);
+      ctx.lineTo(x, originY + layout.boardH);
+    }
+    for (let r = 1; r < BOARD_ROWS; r++) {
+      const y = originY + r * cellSize;
+      ctx.moveTo(originX, y);
+      ctx.lineTo(originX + layout.boardW, y);
+    }
+    ctx.stroke();
     ctx.restore();
 
     const clearingSet = new Set(snapshot.clearingRows);
@@ -152,14 +190,9 @@ export class GameRenderer {
         const isClearing = clearingSet.has(row);
         if (isClearing) {
           const wipe = clamp((clearProgress * (BOARD_COLS + 2) - col) / 2, 0, 1);
-          const glow = 6 + wipe * (cellSize * 0.6);
-          ctx.save();
-          ctx.globalAlpha = 1 - clearProgress * 0.4;
           drawCell(ctx, x, y, cellSize, cell.colorIndex, cell.char, cell.isEmpty, {
-            glow,
-            extraGlow: "#ffffff",
+            whiteFlash: wipe * (1 - clearProgress * 0.3),
           });
-          ctx.restore();
         } else {
           drawCell(ctx, x, y, cellSize, cell.colorIndex, cell.char, cell.isEmpty);
         }
@@ -177,48 +210,18 @@ export class GameRenderer {
         const x = originX + col * cellSize;
         const y = originY + row * cellSize;
         const cellDef = piece.cells[index];
-        drawCell(ctx, x, y, cellSize, piece.colorIndex, cellDef.char, cellDef.isEmpty, { glow: cellSize * 0.22 });
+        drawCell(ctx, x, y, cellSize, piece.colorIndex, cellDef.char, cellDef.isEmpty, { active: true });
       });
     }
-  }
-
-  private drawLandingBanner(ctx: CanvasRenderingContext2D, snapshot: GameSnapshot, layout: BoardLayout, clock: number): void {
-    if (!snapshot.lastLanding) return;
-    const elapsed = clock - snapshot.lastLanding.at;
-    const durationMs = 850;
-    if (elapsed < 0 || elapsed > durationMs) return;
-    const t = elapsed / durationMs;
-    const alpha = t < 0.15 ? t / 0.15 : t > 0.75 ? 1 - (t - 0.75) / 0.25 : 1;
-
-    const bannerY = layout.originY + layout.cellSize * 1.6;
-    ctx.save();
-    ctx.globalAlpha = Math.max(0, Math.min(1, alpha)) * 0.92;
-    ctx.fillStyle = "rgba(4,8,20,0.72)";
-    const w = layout.boardW * 0.94;
-    const h = layout.cellSize * 2.1;
-    const x = layout.originX + (layout.boardW - w) / 2;
-    ctx.fillRect(x, bannerY, w, h);
-    ctx.strokeStyle = "rgba(120,200,255,0.6)";
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(x, bannerY, w, h);
-
-    ctx.textAlign = "center";
-    ctx.fillStyle = "#7fe9ff";
-    ctx.font = `700 ${layout.cellSize * 0.42}px "Consolas", monospace`;
-    ctx.fillText("PLAYER CONNECTED", x + w / 2, bannerY + h * 0.38);
-    ctx.fillStyle = "#ffffff";
-    ctx.font = `800 ${layout.cellSize * 0.6}px "Malgun Gothic", sans-serif`;
-    ctx.fillText(snapshot.lastLanding.participant.name, x + w / 2, bannerY + h * 0.76);
-    ctx.restore();
   }
 
   private drawFinale(ctx: CanvasRenderingContext2D, width: number, height: number, snapshot: GameSnapshot, layout: BoardLayout, clock: number): void {
     if (snapshot.finaleStep === "none") return;
     const stepElapsed = clock - snapshot.finaleStepStartedAt;
 
-    const dimAlpha = snapshot.finaleStep === "dim" ? clamp(stepElapsed / FINALE_DURATIONS.dim, 0, 1) * 0.6 : 0.6;
+    const dimAlpha = snapshot.finaleStep === "dim" ? clamp(stepElapsed / FINALE_DURATIONS.dim, 0, 1) * 0.7 : 0.7;
     ctx.save();
-    ctx.fillStyle = `rgba(2,4,12,${dimAlpha})`;
+    ctx.fillStyle = `rgba(0,0,0,${dimAlpha})`;
     ctx.fillRect(0, 0, width, height);
     ctx.restore();
 
@@ -232,10 +235,7 @@ export class GameRenderer {
           if (wave < 0 || wave > 5) continue;
           const x = layout.originX + col * layout.cellSize;
           const y = layout.originY + row * layout.cellSize;
-          drawCell(ctx, x, y, layout.cellSize, cell.colorIndex, cell.char, cell.isEmpty, {
-            glow: layout.cellSize * 0.7,
-            extraGlow: "#ffffff",
-          });
+          drawCell(ctx, x, y, layout.cellSize, cell.colorIndex, cell.char, cell.isEmpty, { active: true });
         }
       }
     }
@@ -245,19 +245,14 @@ export class GameRenderer {
       const alpha = t < 0.15 ? t / 0.15 : t > 0.85 ? (1 - t) / 0.15 : 1;
       ctx.save();
       ctx.globalAlpha = clamp(alpha, 0, 1);
-      ctx.textAlign = "center";
-      ctx.fillStyle = "#eaf6ff";
-      ctx.shadowColor = "#5ad6ff";
-      ctx.shadowBlur = 26;
-      ctx.font = `800 ${Math.max(28, width * 0.045)}px "Consolas", "Malgun Gothic", monospace`;
-      ctx.fillText("ALL PLAYERS READY", width / 2, height * 0.42);
+      drawPixelText(ctx, "ALL PLAYERS READY", width / 2, height * 0.42, Math.max(16, width * 0.026), "#ffc400");
       ctx.restore();
     }
 
     if (snapshot.finaleStep === "logo") {
       const t = clamp(stepElapsed / FINALE_DURATIONS.logo, 0, 1);
       const alpha = clamp(t / 0.4, 0, 1);
-      const scale = 0.9 + Math.min(t / 0.6, 1) * 0.1;
+      const scale = 0.92 + Math.min(t / 0.6, 1) * 0.08;
       const cx = width / 2;
       const cy = height / 2;
       ctx.save();
@@ -265,11 +260,8 @@ export class GameRenderer {
       ctx.translate(cx, cy);
       ctx.scale(scale, scale);
 
-      const glow = 30 + Math.sin(clock / 180) * 12;
       const img = snapshot.logoUrl ? getLogoImage(snapshot.logoUrl) : null;
       if (img) {
-        ctx.shadowColor = "#7fe9ff";
-        ctx.shadowBlur = glow;
         const maxW = width * 0.4;
         const maxH = height * 0.3;
         const ratio = Math.min(maxW / img.width, maxH / img.height);
@@ -277,15 +269,8 @@ export class GameRenderer {
         const h = img.height * ratio;
         ctx.drawImage(img, -w / 2, -h / 2, w, h);
       } else {
-        ctx.shadowColor = "#7fe9ff";
-        ctx.shadowBlur = glow;
-        ctx.textAlign = "center";
-        ctx.fillStyle = "#ffffff";
-        ctx.font = `900 ${Math.max(30, width * 0.05)}px "Consolas", monospace`;
-        ctx.fillText("SIEUMCLUB", 0, -8);
-        ctx.font = `700 ${Math.max(14, width * 0.02)}px "Consolas", monospace`;
-        ctx.fillStyle = "#9fdfff";
-        ctx.fillText("LIVE BAND BATTLE", 0, Math.max(24, width * 0.032));
+        drawPixelText(ctx, "SIEUMARCADE", 0, -8, Math.max(18, width * 0.032), "#f28c00");
+        drawPixelText(ctx, "[ LIVE BAND BATTLE ]", 0, Math.max(24, width * 0.032), Math.max(10, width * 0.014), "#18bfe8");
       }
       ctx.restore();
     }
@@ -311,7 +296,6 @@ export class GameRenderer {
     const hideBoard = snapshot.finaleStep === "explode" || snapshot.finaleStep === "gather" || snapshot.finaleStep === "logo";
     if (!hideBoard) {
       this.drawBoard(ctx, snapshot, layout, clock);
-      if (snapshot.phase === "playing") this.drawLandingBanner(ctx, snapshot, layout, clock);
     }
 
     this.particles.draw(ctx);

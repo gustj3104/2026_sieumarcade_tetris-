@@ -1,0 +1,249 @@
+/* ---------------- Shared panel typography ---------------- */
+
+.panel-title {
+  font-family: var(--font-pixel);
+  color: var(--text-white);
+  font-size: clamp(10px, 1.3vw, 18px);
+  letter-spacing: 0.1em;
+  padding: clamp(6px, 1vh, 12px) clamp(8px, 1vw, 14px) clamp(4px, 0.6vh, 8px);
+}
+
+.panel-body {
+  padding: 0 clamp(8px, 1vw, 14px) clamp(8px, 1vh, 14px);
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------------- Left: Battle entry ---------------- */
+
+.battle-entry-panel .pixel-frame-inner {
+  padding: clamp(8px, 1.2vh, 16px) clamp(10px, 1.2vw, 16px);
+}
+
+.battle-entry-title {
+  font-family: var(--font-pixel);
+  color: var(--accent-orange);
+  font-size: clamp(11px, 1.4vw, 19px);
+  letter-spacing: 0.08em;
+  line-height: 1.6;
+}
+
+.battle-entry-sub {
+  font-family: var(--font-pixel);
+  color: var(--text-muted);
+  font-size: clamp(8px, 1vw, 13px);
+  letter-spacing: 0.12em;
+  line-height: 1.8;
+}
+
+/* ---------------- Left: NEXT queue ---------------- */
+
+.next-queue-panel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.next-queue-panel .pixel-frame-inner {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.next-queue-list {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.next-queue-item {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  gap: clamp(6px, 0.8vw, 12px);
+  padding: clamp(4px, 0.8vh, 10px) clamp(8px, 1vw, 14px);
+  border-top: 1px solid var(--brick-dark);
+}
+
+.next-queue-item:first-child {
+  border-top: none;
+}
+
+.next-queue-name {
+  font-family: var(--font-kr);
+  font-weight: 800;
+  color: var(--text-white);
+  font-size: clamp(9px, 1.1vw, 15px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------------- Left: current player ---------------- */
+
+.player-panel .pixel-frame-inner {
+  padding: clamp(8px, 1.2vh, 16px) clamp(10px, 1.2vw, 16px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: clamp(4px, 0.8vh, 10px);
+}
+
+.player-panel-name {
+  font-family: var(--font-kr);
+  font-weight: 800;
+  color: var(--accent-orange);
+  font-size: clamp(18px, 2.6vw, 34px);
+  min-height: 1.2em;
+}
+
+.player-panel-name.pulse {
+  animation: player-pulse 380ms ease-out;
+}
+
+@keyframes player-pulse {
+  0% {
+    transform: scale(1.28);
+    filter: brightness(1.6);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+.player-panel-hearts {
+  display: flex;
+  gap: clamp(4px, 0.6vw, 8px);
+  font-size: clamp(14px, 1.8vw, 22px);
+  line-height: 1;
+}
+
+.player-panel-heart {
+  color: var(--block-red);
+  text-shadow: 2px 2px 0 #000;
+}
+
+/* ---------------- Right: STATS ---------------- */
+
+.stats-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: clamp(5px, 0.9vh, 10px) 0;
+  border-top: 1px solid var(--brick-dark);
+}
+
+.stats-row:first-child {
+  border-top: none;
+}
+
+.stats-label {
+  font-family: var(--font-pixel);
+  color: var(--text-white);
+  font-size: clamp(8px, 0.95vw, 13px);
+  letter-spacing: 0.1em;
+}
+
+.stats-value {
+  font-family: var(--font-pixel);
+  color: var(--accent-orange);
+  font-size: clamp(14px, 1.8vw, 26px);
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------- Right: NEXT PLAYERS ---------------- */
+
+.next-players-panel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.next-players-panel .pixel-frame-inner {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.next-players-list {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.next-players-item {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  gap: clamp(6px, 0.8vw, 10px);
+  padding: clamp(3px, 0.6vh, 8px) clamp(8px, 1vw, 14px);
+  border-top: 1px solid var(--brick-dark);
+}
+
+.next-players-item:first-child {
+  border-top: none;
+}
+
+.next-players-index {
+  font-family: var(--font-pixel);
+  color: var(--text-muted);
+  font-size: clamp(8px, 0.9vw, 13px);
+  width: 1.4em;
+  flex: none;
+}
+
+.next-players-name {
+  font-family: var(--font-kr);
+  font-weight: 700;
+  color: var(--text-white);
+  font-size: clamp(9px, 1vw, 14px);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------------- Right: KEY GUIDE ---------------- */
+
+.key-guide-list {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px, 0.7vh, 9px);
+}
+
+.key-guide-row {
+  display: flex;
+  align-items: center;
+  gap: clamp(6px, 0.8vw, 12px);
+}
+
+.key-guide-key {
+  font-family: var(--font-pixel);
+  color: var(--text-white);
+  background: var(--brick-dark);
+  border: 2px solid var(--brick-light);
+  box-shadow: 1px 1px 0 #000;
+  border-radius: 2px;
+  padding: 3px 6px;
+  font-size: clamp(8px, 0.85vw, 12px);
+  flex: none;
+  white-space: nowrap;
+}
+
+.key-guide-desc {
+  font-family: var(--font-kr);
+  color: var(--text-muted);
+  font-size: clamp(9px, 0.95vw, 13px);
+}
