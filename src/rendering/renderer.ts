@@ -30,18 +30,6 @@ export function computeBoardLayout(width: number, height: number): BoardLayout {
   };
 }
 
-const logoImageCache = new Map<string, HTMLImageElement>();
-
-function getLogoImage(url: string): HTMLImageElement | null {
-  let img = logoImageCache.get(url);
-  if (!img) {
-    img = new Image();
-    img.src = url;
-    logoImageCache.set(url, img);
-  }
-  return img.complete && img.naturalWidth > 0 ? img : null;
-}
-
 /** Flat pixel text: solid fill plus a hard 1-step offset shadow instead of shadowBlur. */
 function drawPixelText(
   ctx: CanvasRenderingContext2D,
@@ -73,6 +61,8 @@ export class GameRenderer {
   private prevLandingAt: number | null = null;
   private prevClearingAt: number | null = null;
   private prevFinaleStep: string | null = null;
+  /** Next scheduled ambient sparkle burst during the persisted battle-open hold. */
+  private nextAmbientSparkleAt: number | null = null;
 
   reset(): void {
     this.particles.clear();
@@ -82,6 +72,7 @@ export class GameRenderer {
     this.prevLandingAt = null;
     this.prevClearingAt = null;
     this.prevFinaleStep = null;
+    this.nextAmbientSparkleAt = null;
   }
 
   private cellCenter(layout: BoardLayout, col: number, row: number): { x: number; y: number } {
@@ -91,7 +82,7 @@ export class GameRenderer {
     };
   }
 
-  private handleEvents(snapshot: GameSnapshot, layout: BoardLayout): void {
+  private handleEvents(snapshot: GameSnapshot, layout: BoardLayout, clock: number): void {
     if (snapshot.lastLanding && snapshot.lastLanding.at !== this.prevLandingAt) {
       this.prevLandingAt = snapshot.lastLanding.at;
       const { x, y } = this.cellCenter(layout, snapshot.lastLanding.col + 1.5, snapshot.lastLanding.row + 1);
@@ -121,21 +112,29 @@ export class GameRenderer {
     if (snapshot.finaleStep !== this.prevFinaleStep) {
       const entering = snapshot.finaleStep;
       this.prevFinaleStep = entering;
-      if (entering === "flash") {
-        this.flash.trigger(0.85);
-        this.shake.trigger(8);
-      } else if (entering === "explode") {
+
+      if (entering === "readyPrompt") {
+        // Big flash + a ring of square pixels around the READY? text.
+        this.flash.trigger(0.75);
+        this.shake.trigger(4);
+        const cx = layout.originX + layout.boardW / 2;
+        const cy = layout.originY + layout.boardH * 0.42;
+        this.particles.spawnRadialBurst(cx, cy, "#fff6df", 40, 260);
+      } else if (entering === "burst") {
+        // Every landed name-block detonates outward in all directions at once.
+        this.flash.trigger(0.95);
+        this.shake.trigger(10);
         for (let row = 0; row < BOARD_ROWS; row++) {
           for (let col = 0; col < BOARD_COLS; col++) {
             const cell = snapshot.board[row]?.[col];
             if (!cell) continue;
             const { x, y } = this.cellCenter(layout, col, row);
             const palette = TETROMINO_PALETTE[cell.colorIndex] ?? TETROMINO_PALETTE[0];
-            this.particles.spawnRadialBurst(x, y, palette.light, 5, 210);
+            this.particles.spawnRadialBurst(x, y, palette.light, 6, 260);
           }
         }
-        this.shake.trigger(6);
-      } else if (entering === "gather") {
+      } else if (entering === "keyVisualReveal") {
+        // Scattered pixels rush back in toward center to seed the key-visual reveal.
         const cx = layout.originX + layout.boardW / 2;
         const cy = layout.originY + layout.boardH / 2;
         const colors = Object.values(TETROMINO_PALETTE).map((p) => p.light);
@@ -146,7 +145,30 @@ export class GameRenderer {
           const fromY = cy + Math.sin(angle) * dist;
           this.particles.spawnGather(fromX, fromY, cx, cy, colors[i % colors.length]);
         }
+        this.flash.trigger(0.5);
+        this.nextAmbientSparkleAt = snapshot.finaleStepStartedAt + FINALE_DURATIONS.keyVisualReveal + 3000;
       }
+    }
+
+    // Rising sparks + shockwave rings during the energy-charge beat.
+    if (snapshot.finaleStep === "charging") {
+      const stepElapsed = clock - snapshot.finaleStepStartedAt;
+      if (stepElapsed < FINALE_DURATIONS.charging && Math.random() < 0.55) {
+        const col = Math.random() * BOARD_COLS;
+        const row = BOARD_ROWS - 1 - Math.random() * 6;
+        const { x, y } = this.cellCenter(layout, col, row);
+        const colors = Object.values(TETROMINO_PALETTE).map((p) => p.light);
+        this.particles.spawnRising(x, y, colors[Math.floor(Math.random() * colors.length)]);
+      }
+    }
+
+    // A small recurring sparkle, roughly every 4-6s, while the battle-open hold screen is up.
+    if (snapshot.finaleStep === "keyVisualReveal" && this.nextAmbientSparkleAt !== null && clock >= this.nextAmbientSparkleAt) {
+      const cx = layout.originX + layout.boardW * (0.15 + Math.random() * 0.7);
+      const cy = layout.originY + layout.boardH * (0.15 + Math.random() * 0.7);
+      const colors = Object.values(TETROMINO_PALETTE).map((p) => p.light);
+      this.particles.spawnRadialBurst(cx, cy, colors[Math.floor(Math.random() * colors.length)], 14, 120);
+      this.nextAmbientSparkleAt = clock + 4000 + Math.random() * 2000;
     }
   }
 
@@ -215,64 +237,116 @@ export class GameRenderer {
     }
   }
 
+  /**
+   * Energy overlay drawn on top of the (still fully visible) board during
+   * allPlayersReady/charging: a bottom-to-top brightness wave plus a thin
+   * bright outline riding the same wave. Board contents stay legible - this
+   * is meant to read as "powering up", never as a wipe or a dim-out.
+   */
+  private drawBoardEnergyWave(ctx: CanvasRenderingContext2D, snapshot: GameSnapshot, layout: BoardLayout, stepElapsed: number, durationMs: number, passes: number): void {
+    const passLenMs = durationMs / passes;
+    const sweepT = (stepElapsed % passLenMs) / passLenMs;
+    for (let row = 0; row < BOARD_ROWS; row++) {
+      const rowFromBottom = BOARD_ROWS - 1 - row;
+      const wave = sweepT * (BOARD_ROWS + 6) - rowFromBottom;
+      if (wave < 0 || wave > 6) continue;
+      const intensity = 1 - Math.abs(wave - 3) / 3;
+      for (let col = 0; col < BOARD_COLS; col++) {
+        const cell = snapshot.board[row]?.[col];
+        if (!cell) continue;
+        const x = layout.originX + col * layout.cellSize;
+        const y = layout.originY + row * layout.cellSize;
+        drawCell(ctx, x, y, layout.cellSize, cell.colorIndex, cell.char, cell.isEmpty, {
+          active: true,
+          whiteFlash: intensity * 0.3,
+        });
+      }
+    }
+  }
+
   private drawFinale(ctx: CanvasRenderingContext2D, width: number, height: number, snapshot: GameSnapshot, layout: BoardLayout, clock: number): void {
     if (snapshot.finaleStep === "none") return;
     const stepElapsed = clock - snapshot.finaleStepStartedAt;
 
-    const dimAlpha = snapshot.finaleStep === "dim" ? clamp(stepElapsed / FINALE_DURATIONS.dim, 0, 1) * 0.7 : 0.7;
-    ctx.save();
-    ctx.fillStyle = `rgba(0,0,0,${dimAlpha})`;
-    ctx.fillRect(0, 0, width, height);
-    ctx.restore();
+    if (snapshot.finaleStep === "allPlayersReady") {
+      const dur = FINALE_DURATIONS.allPlayersReady;
+      this.drawBoardEnergyWave(ctx, snapshot, layout, stepElapsed, dur, 1);
 
-    if (snapshot.finaleStep === "outline") {
-      const progress = clamp(stepElapsed / FINALE_DURATIONS.outline, 0, 1);
-      for (let row = 0; row < BOARD_ROWS; row++) {
-        for (let col = 0; col < BOARD_COLS; col++) {
-          const cell = snapshot.board[row]?.[col];
-          if (!cell) continue;
-          const wave = progress * (BOARD_COLS + 6) - col;
-          if (wave < 0 || wave > 5) continue;
-          const x = layout.originX + col * layout.cellSize;
-          const y = layout.originY + row * layout.cellSize;
-          drawCell(ctx, x, y, layout.cellSize, cell.colorIndex, cell.char, cell.isEmpty, { active: true });
-        }
-      }
-    }
+      const t = clamp(stepElapsed / dur, 0, 1);
+      let color = "#f4f4e8";
+      if (t < 0.18) color = "#ffc400";
+      else if (t < 0.36) color = "#f28c00";
+      const scaleT = clamp(stepElapsed / 280, 0, 1);
+      const scale = scaleT < 0.5 ? 0.95 + 0.1 * (scaleT / 0.5) : 1.05 - 0.05 * ((scaleT - 0.5) / 0.5);
+      // 2-3 frame glitch jitter right at entry.
+      const jitterX = stepElapsed < 120 ? (Math.floor(stepElapsed / 35) % 2 === 0 ? 3 : -3) : 0;
 
-    if (snapshot.finaleStep === "title") {
-      const t = clamp(stepElapsed / FINALE_DURATIONS.title, 0, 1);
-      const alpha = t < 0.15 ? t / 0.15 : t > 0.85 ? (1 - t) / 0.15 : 1;
       ctx.save();
-      ctx.globalAlpha = clamp(alpha, 0, 1);
-      drawPixelText(ctx, "ALL PLAYERS READY", width / 2, height * 0.42, Math.max(16, width * 0.026), "#ffc400");
-      ctx.restore();
-    }
-
-    if (snapshot.finaleStep === "logo") {
-      const t = clamp(stepElapsed / FINALE_DURATIONS.logo, 0, 1);
-      const alpha = clamp(t / 0.4, 0, 1);
-      const scale = 0.92 + Math.min(t / 0.6, 1) * 0.08;
-      const cx = width / 2;
-      const cy = height / 2;
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      ctx.translate(cx, cy);
+      ctx.translate(width / 2 + jitterX, height * 0.4);
       ctx.scale(scale, scale);
+      drawPixelText(ctx, "ALL PLAYERS READY", 0, 0, Math.max(16, width * 0.026), color);
+      ctx.restore();
+    }
 
-      const img = snapshot.logoUrl ? getLogoImage(snapshot.logoUrl) : null;
-      if (img) {
-        const maxW = width * 0.4;
-        const maxH = height * 0.3;
-        const ratio = Math.min(maxW / img.width, maxH / img.height);
-        const w = img.width * ratio;
-        const h = img.height * ratio;
-        ctx.drawImage(img, -w / 2, -h / 2, w, h);
-      } else {
-        drawPixelText(ctx, "SIEUMARCADE", 0, -8, Math.max(18, width * 0.032), "#f28c00");
-        drawPixelText(ctx, "[ LIVE BAND BATTLE ]", 0, Math.max(24, width * 0.032), Math.max(10, width * 0.014), "#18bfe8");
+    if (snapshot.finaleStep === "charging") {
+      const dur = FINALE_DURATIONS.charging;
+      this.drawBoardEnergyWave(ctx, snapshot, layout, stepElapsed, dur, 2);
+
+      // 2-3 pixel shockwave rings expanding from board center.
+      const cx = layout.originX + layout.boardW / 2;
+      const cy = layout.originY + layout.boardH / 2;
+      const ringCount = 3;
+      const ringLife = 520;
+      const maxRadius = Math.max(layout.boardW, layout.boardH) * 0.62;
+      ctx.save();
+      for (let i = 0; i < ringCount; i++) {
+        const ringElapsed = stepElapsed - i * (dur / ringCount);
+        if (ringElapsed < 0 || ringElapsed > ringLife) continue;
+        const ringT = ringElapsed / ringLife;
+        const radius = Math.round(ringT * maxRadius);
+        ctx.globalAlpha = (1 - ringT) * 0.5;
+        ctx.strokeStyle = "#f4f4e8";
+        ctx.lineWidth = Math.max(1, layout.cellSize * 0.12);
+        ctx.strokeRect(cx - radius, cy - radius, radius * 2, radius * 2);
       }
       ctx.restore();
+    }
+
+    if (snapshot.finaleStep === "readyPrompt") {
+      const dur = FINALE_DURATIONS.readyPrompt;
+      const t = clamp(stepElapsed / dur, 0, 1);
+      const scale = t < 0.4 ? 0.8 + 0.35 * (t / 0.4) : t < 0.65 ? 1.15 - 0.15 * ((t - 0.4) / 0.25) : 1;
+      ctx.save();
+      ctx.translate(width / 2, height * 0.46);
+      ctx.scale(scale, scale);
+      drawPixelText(ctx, "READY?", 0, 0, Math.max(28, width * 0.07), "#fff6df");
+      ctx.restore();
+    }
+
+    if (snapshot.finaleStep === "burst") {
+      // Brief dark-navy pre-flash (<=120ms) right before the bright detonation.
+      if (stepElapsed < 120) {
+        ctx.save();
+        ctx.fillStyle = `rgba(4,6,20,${(1 - stepElapsed / 120) * 0.55})`;
+        ctx.fillRect(0, 0, width, height);
+        ctx.restore();
+      }
+      // The board frame itself gets pushed outward and fades away.
+      const frameT = clamp(stepElapsed / 550, 0, 1);
+      if (frameT < 1) {
+        const grow = frameT * layout.cellSize * 5;
+        ctx.save();
+        ctx.globalAlpha = 1 - frameT;
+        ctx.strokeStyle = "#f4f4e8";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(
+          layout.originX - 3 - grow,
+          layout.originY - 3 - grow,
+          layout.boardW + 6 + grow * 2,
+          layout.boardH + 6 + grow * 2,
+        );
+        ctx.restore();
+      }
     }
   }
 
@@ -281,7 +355,7 @@ export class GameRenderer {
     this.lastClock = clock;
 
     const layout = computeBoardLayout(width, height);
-    this.handleEvents(snapshot, layout);
+    this.handleEvents(snapshot, layout, clock);
     this.particles.update(dt);
     this.shake.update(dt);
     this.flash.update(dt);
@@ -293,7 +367,11 @@ export class GameRenderer {
     ctx.save();
     ctx.translate(shakeOffset.x, shakeOffset.y);
 
-    const hideBoard = snapshot.finaleStep === "explode" || snapshot.finaleStep === "gather" || snapshot.finaleStep === "logo";
+    // Board stays fully visible and legible through allPlayersReady/charging/
+    // readyPrompt (per spec: never a wipe or dim-out before the burst). Only
+    // burst and beyond hide it - the particle explosion carries the visual,
+    // then the DOM key-visual overlay takes over for the persisted hold.
+    const hideBoard = snapshot.finaleStep === "burst" || snapshot.finaleStep === "keyVisualReveal";
     if (!hideBoard) {
       this.drawBoard(ctx, snapshot, layout, clock);
     }

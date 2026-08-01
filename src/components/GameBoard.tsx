@@ -37,12 +37,22 @@ export function GameBoard() {
 
     let raf = 0;
     let lastTs: number | null = null;
+    let prevPhase = engine.getSnapshot().phase;
     function frame(ts: number) {
       const dt = lastTs === null ? 16 : ts - lastTs;
       lastTs = ts;
       engine.tick(dt);
+      const snapshot = engine.getSnapshot();
+      // Admin restart (R / "초기화 후 재시작") jumps straight from
+      // finale/completed back to playing - clear every finale-only visual
+      // (particles, screen shake/flash, ambient sparkle timer) so nothing
+      // from the battle-open hold screen leaks into the fresh game.
+      if ((prevPhase === "finale" || prevPhase === "completed") && snapshot.phase === "playing") {
+        renderer.reset();
+      }
+      prevPhase = snapshot.phase;
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
-      renderer.render(ctx!, width, height, engine.getSnapshot(), engine.getClock());
+      renderer.render(ctx!, width, height, snapshot, engine.getClock());
       raf = requestAnimationFrame(frame);
     }
     raf = requestAnimationFrame(frame);

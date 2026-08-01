@@ -109,10 +109,8 @@ export interface GameSnapshot {
 
 export type FinaleStep =
   | "none"
-  | "dim"
-  | "outline"
-  | "title"
-  | "flash"
-  | "explode"
-  | "gather"
-  | "logo";
+  | "allPlayersReady"
+  | "charging"
+  | "readyPrompt"
+  | "burst"
+  | "keyVisualReveal";

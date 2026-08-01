@@ -3,6 +3,7 @@ import { RightPanel } from "./RightPanel";
 import { BattleHeader } from "./BattleHeader";
 import { GameBoard } from "./GameBoard";
 import { FinaleOverlay } from "./FinaleOverlay";
+import { BattleTransitionOverlay } from "./BattleTransition/BattleTransitionOverlay";
 
 /**
  * The full audience-facing cabinet: left info panel, center title + board,
@@ -19,6 +20,7 @@ export function ArcadeShell() {
       </div>
       <RightPanel />
       <FinaleOverlay />
+      <BattleTransitionOverlay />
     </div>
   );
 }

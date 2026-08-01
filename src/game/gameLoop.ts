@@ -25,29 +25,22 @@ import { createBagGenerator, SHAPE_BOX } from "./tetrominoes";
 import { createNameBlock } from "./nameBlockFactory";
 import { lineClearScore, SCORE_LOCK } from "./scoring";
 import { shuffle } from "../utils/shuffle";
+import { BATTLE_TRANSITION_ORDER, BATTLE_TRANSITION_TIMING } from "../effects/battleTransition/transitionTimeline";
 
 export const CLEAR_ANIMATION_MS = 400;
 const MAX_FRAME_DT_MS = 100; // guards against huge jumps after a backgrounded tab
 
-export const FINALE_ORDER: FinaleStep[] = [
-  "dim",
-  "outline",
-  "title",
-  "flash",
-  "explode",
-  "gather",
-  "logo",
-];
+/**
+ * The finale timeline (board settles -> ALL PLAYERS READY -> energy charge
+ * -> READY? -> full-screen burst -> key visual reveal) reuses the single
+ * BATTLE_TRANSITION_TIMING config so CSS/canvas/engine never drift apart.
+ * Once the sequence finishes, `phase` becomes "completed" and `finaleStep`
+ * stays pinned on the last entry ("keyVisualReveal") forever - the renderer
+ * treats that as the persistent "battle open" hold screen.
+ */
+export const FINALE_ORDER: FinaleStep[] = BATTLE_TRANSITION_ORDER;
 
-export const FINALE_DURATIONS: Record<Exclude<FinaleStep, "none">, number> = {
-  dim: 400,
-  outline: 700,
-  title: 2000,
-  flash: 250,
-  explode: 600,
-  gather: 450,
-  logo: 900,
-};
+export const FINALE_DURATIONS: Record<Exclude<FinaleStep, "none">, number> = BATTLE_TRANSITION_TIMING;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
@@ -406,7 +399,7 @@ export class TetrisEngine {
 
   private beginFinale(): void {
     this.phase = "finale";
-    this.finaleStep = "dim";
+    this.finaleStep = FINALE_ORDER[0];
     this.finaleStepStartedAt = this.clock;
     this.finaleBoardSnapshot = cloneBoard(this.board);
     this.notify();
