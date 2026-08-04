@@ -1,17 +1,20 @@
 import { useBattleTransition } from "../hooks/useBattleTransition";
+import keyVisual from "../assets/keyvisual.png";
 
-/** Center-top event key-visual: a from-scratch retro arcade wordmark, not a copied logo asset. */
+/**
+ * Center-top event key-visual. Shows the official SIEUMCLUB [LIVE BATTLE]
+ * artwork (same asset/priority as the battle-open ending's key visual: an
+ * admin-uploaded logo, if set, overrides the bundled default).
+ */
 export function BattleHeader() {
-  const { phase, style } = useBattleTransition();
+  const { phase, style, logoUrl } = useBattleTransition();
+  const src = logoUrl ?? keyVisual;
   return (
     <div className={`battle-header bt-header bt-header-${phase}`} style={style}>
       <div className="battle-header-see">SEE THE SOUND</div>
       <div className="battle-header-logo-wrap">
-        <div className="battle-header-rainbow" data-bt-unit="header-deco" aria-hidden="true" />
-        <div className="battle-header-star" data-bt-unit="header-deco" aria-hidden="true" />
-        <div className="battle-header-logo">SIEUMARCADE</div>
+        <img src={src} alt="SIEUMCLUB [LIVE BATTLE]" className="battle-header-logo-img" data-bt-unit="header-deco" />
       </div>
-      <div className="battle-header-sub">[ LIVE BAND BATTLE ]</div>
     </div>
   );
 }

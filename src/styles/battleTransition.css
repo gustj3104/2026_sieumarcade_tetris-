@@ -389,18 +389,13 @@
   to { border-top-color: var(--accent-orange); }
 }
 
-.bt-header-charging .battle-header-logo {
+.bt-header-charging .battle-header-logo-img {
   animation: bt-title-pulse var(--bt-dur, 1200ms) ease-in-out infinite;
 }
 
-.bt-header-charging .battle-header-rainbow,
-.bt-header-charging .battle-header-star {
-  animation: bt-flicker 600ms ease-out infinite;
-}
-
 @keyframes bt-title-pulse {
-  0%, 100% { transform: skewX(-10deg) translateY(0) scale(1); }
-  50% { transform: skewX(-10deg) translateY(-4px) scale(1.05); }
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-4px) scale(1.05); }
 }
 
 .bt-board-charging {
@@ -460,16 +455,6 @@
   8% { filter: brightness(2.6); }
   30% { transform: translateY(-16px) scale(0.9); opacity: 0.7; }
   100% { transform: translateY(-50px) scale(0.55); opacity: 0; }
-}
-
-.bt-header-burst .battle-header-rainbow,
-.bt-header-burst .battle-header-star {
-  animation: bt-deco-scatter var(--bt-dur, 1100ms) ease-out 1 both;
-}
-
-@keyframes bt-deco-scatter {
-  0% { transform: translate(0, 0) scale(1); opacity: 1; }
-  100% { transform: translate(var(--bt-scatter-x, 70px), -100px) scale(1.8); opacity: 0; }
 }
 
 @keyframes bt-burst-board {
