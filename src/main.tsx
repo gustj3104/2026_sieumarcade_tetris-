@@ -5,6 +5,7 @@ import './styles/tokens.css'
 import './styles/arcade.css'
 import './styles/panels.css'
 import './styles/blocks.css'
+import './styles/battleTransition.css'
 import App from './App.tsx'
 
 createRoot(document.getElementById('root')!).render(

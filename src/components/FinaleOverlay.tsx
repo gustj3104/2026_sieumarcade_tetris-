@@ -1,17 +1,26 @@
-import { useGameSnapshot } from "../state/gameStore";
+import { useBattleTransition } from "../hooks/useBattleTransition";
+
+const ANNOUNCEMENTS: Partial<Record<ReturnType<typeof useBattleTransition>["phase"], string>> = {
+  playersReady: "ALL PLAYERS READY",
+  charging: "ALL PLAYERS READY",
+  readyPrompt: "READY?",
+  burst: "READY?",
+  keyVisualAssembly: "BATTLE STARTS NOW",
+  battleTextReveal: "BATTLE STARTS NOW",
+  battleOpen: "BATTLE STARTS NOW",
+};
 
 /**
- * All finale visuals (title, glow, particle explosion, logo reveal) are
- * drawn directly on the canvas by rendering/renderer.ts for tight sync with
- * the particle system. This component only carries the accessible
- * announcement so screen readers get the same beat the audience sees.
+ * Most finale visuals (board energy wave, burst, key-visual reveal) are
+ * drawn by rendering/renderer.ts and components/BattleTransition for tight
+ * sync with the particle system. This component only carries the accessible
+ * announcement so screen readers get the same beats the audience sees.
  */
 export function FinaleOverlay() {
-  const snap = useGameSnapshot();
-  const active = snap.phase === "finale" || snap.phase === "completed";
+  const { phase } = useBattleTransition();
   return (
     <div className="sr-only" aria-live="polite">
-      {active ? "ALL PLAYERS READY" : ""}
+      {ANNOUNCEMENTS[phase] ?? ""}
     </div>
   );
 }

@@ -18,13 +18,13 @@ export function CurrentPlayerPanel() {
   }, [name]);
 
   return (
-    <PixelFrame className="player-panel">
+    <PixelFrame className="player-panel" data-bt-unit="left-frame">
       <div className="panel-title">PLAYER</div>
-      <div className={`player-panel-name ${pulse ? "pulse" : ""}`}>{name}</div>
+      <div className={`player-panel-name ${pulse ? "pulse" : ""}`} data-bt-unit="player-name">{name}</div>
       <div className="player-panel-hearts" aria-hidden="true">
-        <span className="player-panel-heart">♥</span>
-        <span className="player-panel-heart">♥</span>
-        <span className="player-panel-heart">♥</span>
+        <span className="player-panel-heart" data-bt-unit="player-heart">♥</span>
+        <span className="player-panel-heart" data-bt-unit="player-heart">♥</span>
+        <span className="player-panel-heart" data-bt-unit="player-heart">♥</span>
       </div>
     </PixelFrame>
   );

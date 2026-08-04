@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { engine, useGameSnapshot } from "../state/gameStore";
 import { GameRenderer } from "../rendering/renderer";
 import { PixelFrame } from "./PixelFrame";
+import { useBattleTransition } from "../hooks/useBattleTransition";
 
 /**
  * The board itself: a full-bleed canvas inside its own panel, driving its own
@@ -10,6 +11,7 @@ import { PixelFrame } from "./PixelFrame";
 export function GameBoard() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const snap = useGameSnapshot();
+  const { phase, style } = useBattleTransition();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -37,12 +39,22 @@ export function GameBoard() {
 
     let raf = 0;
     let lastTs: number | null = null;
+    let prevPhase = engine.getSnapshot().phase;
     function frame(ts: number) {
       const dt = lastTs === null ? 16 : ts - lastTs;
       lastTs = ts;
       engine.tick(dt);
+      const snapshot = engine.getSnapshot();
+      // Admin restart (R / "초기화 후 재시작") jumps straight from
+      // finale/completed back to playing - clear every finale-only visual
+      // (particles, screen shake/flash, ambient sparkle timer) so nothing
+      // from the battle-open hold screen leaks into the fresh game.
+      if ((prevPhase === "finale" || prevPhase === "completed") && snapshot.phase === "playing") {
+        renderer.reset();
+      }
+      prevPhase = snapshot.phase;
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
-      renderer.render(ctx!, width, height, engine.getSnapshot(), engine.getClock());
+      renderer.render(ctx!, width, height, snapshot, engine.getClock());
       raf = requestAnimationFrame(frame);
     }
     raf = requestAnimationFrame(frame);
@@ -54,7 +66,7 @@ export function GameBoard() {
   }, []);
 
   return (
-    <PixelFrame className="board-panel">
+    <PixelFrame className={`board-panel bt-board bt-board-${phase}`} style={style}>
       <canvas ref={canvasRef} className="game-canvas" />
       {snap.phase === "paused" && <div className="board-overlay-message">PAUSED</div>}
       {snap.phase === "setup" && <div className="board-overlay-message">PRESS ESC FOR ADMIN</div>}

@@ -9,11 +9,11 @@ export function NextQueue() {
   const upcoming = snap.upcoming.slice(0, 5);
 
   return (
-    <PixelFrame className="next-queue-panel">
+    <PixelFrame className="next-queue-panel" data-bt-unit="left-frame">
       <div className="panel-title">NEXT</div>
       <div className="next-queue-list">
         {upcoming.map((participant) => (
-          <div key={participant.id} className="next-queue-item">
+          <div key={participant.id} className="next-queue-item" data-bt-unit="next-item">
             <TetrominoPreview participant={participant} cellPx={PREVIEW_CELL_PX} />
             <span className="next-queue-name">{participant.name}</span>
           </div>

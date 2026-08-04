@@ -10,12 +10,12 @@ const KEYS: { key: string; desc: string }[] = [
 
 export function KeyGuide() {
   return (
-    <PixelFrame className="key-guide-panel">
+    <PixelFrame className="key-guide-panel" data-bt-unit="right-frame">
       <div className="panel-title">KEY GUIDE</div>
       <div className="panel-body">
         <div className="key-guide-list">
           {KEYS.map(({ key, desc }) => (
-            <div key={key} className="key-guide-row">
+            <div key={key} className="key-guide-row" data-bt-unit="key-guide-row">
               <span className="key-guide-key">{key}</span>
               <span className="key-guide-desc">{desc}</span>
             </div>

@@ -1,0 +1,482 @@
+/* ====================================================================
+   Battle-open transition: the hand-off from the auto-playing tetris show
+   to the live band battle, played after the existing end button / 2s
+   Enter-hold input succeeds. Durations come from --bt-dur, set from the
+   single BATTLE_OPEN_TIMING config (src/effects/battleTransition/
+   transitionTimeline.ts) via useBattleTransition - never hand-typed here.
+
+   Every phase class below is applied exclusively (only the current step's
+   class is present on a given element), so leaving a phase removes its
+   animation with it - nothing needs manual resetting between steps.
+   ==================================================================== */
+
+/* ---------------- Whole-cabinet shake + post-burst disappearance ---------------- */
+
+.bt-cabinet {
+  transition: opacity 120ms ease;
+}
+
+.bt-cabinet-playersReady {
+  animation: bt-shake-once 260ms steps(1) 1;
+}
+
+.bt-cabinet-charging {
+  animation: bt-shake-jitter 140ms steps(1) infinite;
+}
+
+@keyframes bt-shake-once {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-3px, 2px); }
+  20% { transform: translate(3px, -2px); }
+  30% { transform: translate(-2px, 3px); }
+  40% { transform: translate(2px, 1px); }
+  50% { transform: translate(-3px, -1px); }
+  60% { transform: translate(2px, 2px); }
+  70% { transform: translate(-1px, -2px); }
+  80% { transform: translate(1px, -1px); }
+  90% { transform: translate(-1px, 1px); }
+}
+
+@keyframes bt-shake-jitter {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(1px, -1px); }
+}
+
+.bt-cabinet-keyVisualAssembly,
+.bt-cabinet-battleTextReveal,
+.bt-cabinet-battleOpen {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ---------------- Full-viewport particle canvas + overlay ---------------- */
+
+.bt-particle-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+}
+
+.bt-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 41;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* ---------------- ALL PLAYERS READY ---------------- */
+
+.bt-players-ready {
+  width: 100vw;
+  text-align: center;
+  padding: 0 4vw;
+}
+
+.bt-players-ready span {
+  display: inline-block;
+  font-family: var(--font-pixel);
+  font-weight: 700;
+  font-size: clamp(28px, 6.4vw, 108px);
+  letter-spacing: 0.01em;
+  line-height: 1;
+  color: #f4f4e8;
+  text-shadow: 4px 4px 0 #000, 7px 7px 0 rgba(0, 0, 0, 0.6);
+  animation:
+    bt-players-ready-color var(--bt-dur, 800ms) steps(1) 1,
+    bt-players-ready-scale 320ms cubic-bezier(0.2, 1.6, 0.4, 1) 1,
+    bt-players-ready-glitch 140ms steps(2) 1;
+}
+
+@keyframes bt-players-ready-color {
+  0% { color: #f4f4e8; }
+  18% { color: #ffc400; }
+  36% { color: #f28c00; }
+  55%, 100% { color: #f4f4e8; }
+}
+
+@keyframes bt-players-ready-scale {
+  0% { transform: scale(0.9); }
+  55% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+@keyframes bt-players-ready-glitch {
+  0% { transform: translateX(0); }
+  33% { transform: translateX(4px); }
+  66% { transform: translateX(-4px); }
+  100% { transform: translateX(0); }
+}
+
+/* ---------------- READY? ---------------- */
+
+.bt-ready-prompt-flash {
+  position: fixed;
+  inset: 0;
+  background: #fffef2;
+  animation: bt-ready-flash-anim var(--bt-dur, 500ms) ease-out 1;
+}
+
+@keyframes bt-ready-flash-anim {
+  0% { opacity: 0; }
+  10% { opacity: 0.95; }
+  40% { opacity: 0; }
+  100% { opacity: 0; }
+}
+
+.bt-ready-prompt-text {
+  position: relative;
+  display: inline-block;
+  font-family: var(--font-pixel);
+  font-weight: 700;
+  font-size: clamp(48px, 11vw, 220px);
+  color: #fff8e6;
+  text-shadow: 5px 5px 0 #000, 9px 9px 0 rgba(0, 0, 0, 0.6);
+  animation:
+    bt-ready-scale 380ms cubic-bezier(0.15, 1.9, 0.35, 1) 1,
+    bt-ready-rgb-split 220ms steps(3) 1;
+}
+
+@keyframes bt-ready-scale {
+  0% { transform: scale(0.6); opacity: 0; }
+  55% { transform: scale(1.25); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes bt-ready-rgb-split {
+  0% { filter: drop-shadow(-5px 0 #ff3b3b) drop-shadow(5px 2px #18bfe8) drop-shadow(0 -3px #ffe23b); }
+  60% { filter: drop-shadow(-2px 0 #ff3b3b) drop-shadow(2px 1px #18bfe8) drop-shadow(0 -1px #ffe23b); }
+  100% { filter: drop-shadow(0 0 transparent); }
+}
+
+/* ---------------- Key-visual stage + BATTLE STARTS NOW ---------------- */
+
+.bt-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.bt-stage-rays {
+  position: absolute;
+  top: 46%;
+  left: 50%;
+  width: 46vw;
+  height: 46vw;
+  transform: translate(-50%, -50%);
+  background:
+    radial-gradient(circle, rgba(255, 248, 220, 0.9) 0%, rgba(255, 248, 220, 0) 60%),
+    repeating-conic-gradient(from 0deg, rgba(255, 226, 88, 0.5) 0deg 3deg, transparent 3deg 24deg);
+  animation: bt-stage-rays-burst 650ms ease-out 1 both;
+  pointer-events: none;
+}
+
+@keyframes bt-stage-rays-burst {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3) rotate(0deg); }
+  35% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(20deg); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5) rotate(45deg); }
+}
+
+.bt-keyvisual-img {
+  position: relative;
+  z-index: 1;
+  /* Only max-width/max-height (no width/min-width) so the real image's own
+     aspect ratio decides the fit - the wide official artwork would otherwise
+     fight a fixed width target against the 65vh height cap. */
+  max-width: 85vw;
+  max-height: 68vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  image-rendering: auto;
+  filter: drop-shadow(0 10px 0 rgba(0, 0, 0, 0.55));
+  clip-path: circle(0% at 50% 52%);
+  animation:
+    bt-kv-wipe 620ms cubic-bezier(0.2, 0.8, 0.3, 1) 1 both,
+    bt-kv-tone 460ms ease-out 1 both,
+    bt-kv-bounce 640ms cubic-bezier(0.16, 1.7, 0.35, 1) 1 both,
+    bt-kv-rgb-split 260ms steps(3) 1,
+    bt-kv-breathe 4.5s ease-in-out 1600ms infinite;
+}
+
+@keyframes bt-kv-wipe {
+  0% { clip-path: circle(0% at 50% 52%); }
+  100% { clip-path: circle(75% at 50% 52%); }
+}
+
+@keyframes bt-kv-tone {
+  0% { filter: drop-shadow(0 10px 0 rgba(0, 0, 0, 0.55)) grayscale(1) brightness(2.2); }
+  100% { filter: drop-shadow(0 10px 0 rgba(0, 0, 0, 0.55)) grayscale(0) brightness(1); }
+}
+
+@keyframes bt-kv-bounce {
+  0% { transform: scale(0.7); }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+@keyframes bt-kv-rgb-split {
+  0% { filter: drop-shadow(-4px 0 #ff3b3b) drop-shadow(4px 2px #18bfe8) drop-shadow(0 -2px #ffe23b); }
+  100% { filter: drop-shadow(0 0 transparent); }
+}
+
+@keyframes bt-kv-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.015); }
+}
+
+.bt-battle-starts {
+  position: relative;
+  z-index: 2;
+  margin-top: clamp(-40px, -3vh, -10px);
+  opacity: 0;
+  transform: scale(0.7);
+}
+
+.bt-stage-battleTextReveal .bt-battle-starts,
+.bt-stage-battleOpen .bt-battle-starts {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.bt-battle-starts span {
+  display: inline-block;
+  font-family: var(--font-pixel);
+  font-weight: 700;
+  font-size: clamp(22px, 5.4vw, 90px);
+  letter-spacing: 0.22em;
+  text-indent: 0.22em;
+  color: var(--accent-yellow, #ffc400);
+  text-shadow:
+    0 -2px 0 #fff6df,
+    4px 4px 0 #000,
+    7px 7px 0 rgba(0, 0, 0, 0.55);
+}
+
+.bt-stage-battleTextReveal .bt-battle-starts span {
+  animation: bt-bsn-pop 460ms cubic-bezier(0.18, 1.7, 0.35, 1) 1 both;
+}
+
+.bt-stage-battleOpen .bt-battle-starts {
+  animation: bt-bsn-outline-pulse 3s ease-in-out infinite;
+}
+
+@keyframes bt-bsn-pop {
+  0% { transform: scale(0.7); opacity: 0; }
+  55% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes bt-bsn-outline-pulse {
+  0%, 85%, 100% { filter: brightness(1); }
+  92% { filter: brightness(1.5) drop-shadow(0 0 6px rgba(255, 196, 0, 0.5)); }
+}
+
+.bt-stage-bottomline {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: clamp(10px, 3vh, 28px);
+  height: 3px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--block-red, #d93118) 0 16px,
+    var(--accent-yellow, #ffc400) 16px 32px,
+    var(--accent-cyan, #18bfe8) 32px 48px,
+    var(--block-green, #4bad16) 48px 64px
+  );
+  background-size: 200% 100%;
+  opacity: 0;
+  animation: bt-bottomline-scroll 6s linear infinite;
+}
+
+.bt-stage-battleTextReveal .bt-stage-bottomline,
+.bt-stage-battleOpen .bt-stage-bottomline {
+  opacity: 0.6;
+}
+
+@keyframes bt-bottomline-scroll {
+  from { background-position: 0 0; }
+  to { background-position: -128px 0; }
+}
+
+/* ====================================================================
+   Side panels (NEXT / STATS / KEY GUIDE columns), header, and the board
+   panel itself. Charge-up beats animate the real elements in place; the
+   burst beat plays a real fly-apart (not opacity fade) before the whole
+   cabinet is hidden a moment later (see .bt-cabinet-* above) once its
+   pixel-particle likeness (from burstSources.ts) has taken over.
+   ==================================================================== */
+
+.bt-side-panel,
+.bt-header,
+.bt-board {
+  transition: opacity 200ms ease;
+}
+
+/* ---- playersReady: one flicker sync ---- */
+
+.bt-side-playersReady,
+.bt-header-playersReady,
+.bt-board-playersReady {
+  animation: bt-flicker var(--bt-dur, 800ms) ease-out 1;
+}
+
+@keyframes bt-flicker {
+  0%, 100% { filter: brightness(1); }
+  15% { filter: brightness(1.9) saturate(1.3); }
+  30% { filter: brightness(1.1); }
+  45% { filter: brightness(1.7) sepia(0.25) saturate(2); }
+  60% { filter: brightness(1); }
+}
+
+/* ---- charging: NEXT items bounce, hearts blink fast, logo pulses ---- */
+
+.bt-side-charging .next-queue-item,
+.bt-side-charging .next-players-item {
+  animation: bt-item-bounce 420ms ease-out 2;
+}
+
+.bt-side-charging .next-queue-item:nth-child(2),
+.bt-side-charging .next-players-item:nth-child(2) { animation-delay: 60ms; }
+.bt-side-charging .next-queue-item:nth-child(3),
+.bt-side-charging .next-players-item:nth-child(3) { animation-delay: 120ms; }
+.bt-side-charging .next-queue-item:nth-child(4),
+.bt-side-charging .next-players-item:nth-child(4) { animation-delay: 180ms; }
+.bt-side-charging .next-queue-item:nth-child(5),
+.bt-side-charging .next-players-item:nth-child(5) { animation-delay: 240ms; }
+
+@keyframes bt-item-bounce {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-7px); }
+}
+
+.bt-side-charging .player-panel-heart {
+  animation: bt-heart-blink 240ms steps(1) infinite;
+}
+
+@keyframes bt-heart-blink {
+  0%, 100% { color: var(--block-red); }
+  50% { color: var(--accent-yellow); }
+}
+
+.bt-side-charging.arcade-column-left .battle-entry-panel {
+  animation: bt-flicker 500ms ease-out 1;
+}
+
+.bt-stats-charging .stats-value {
+  animation: bt-stats-glow 460ms ease-in-out infinite alternate;
+}
+
+.bt-stats-charging .stats-row {
+  animation: bt-stats-divider 680ms ease-in-out infinite alternate;
+}
+
+@keyframes bt-stats-glow {
+  from { color: var(--accent-orange); transform: translateY(0); }
+  to { color: var(--text-white); transform: translateY(-1px); }
+}
+
+@keyframes bt-stats-divider {
+  from { border-top-color: var(--brick-dark); }
+  to { border-top-color: var(--accent-orange); }
+}
+
+.bt-header-charging .battle-header-logo {
+  animation: bt-title-pulse var(--bt-dur, 1200ms) ease-in-out infinite;
+}
+
+.bt-header-charging .battle-header-rainbow,
+.bt-header-charging .battle-header-star {
+  animation: bt-flicker 600ms ease-out infinite;
+}
+
+@keyframes bt-title-pulse {
+  0%, 100% { transform: skewX(-10deg) translateY(0) scale(1); }
+  50% { transform: skewX(-10deg) translateY(-4px) scale(1.05); }
+}
+
+.bt-board-charging {
+  animation: bt-flicker 500ms ease-out infinite;
+}
+
+/* ---- readyPrompt: a quick synced brightness beat, text lives in the overlay ---- */
+
+.bt-side-readyPrompt,
+.bt-header-readyPrompt,
+.bt-board-readyPrompt {
+  animation: bt-ready-sync var(--bt-dur, 500ms) ease-out 1;
+}
+
+@keyframes bt-ready-sync {
+  0% { filter: brightness(1); }
+  20% { filter: brightness(2.4); }
+  100% { filter: brightness(1); }
+}
+
+/* ---- burst: panels/header/board frame blow outward, not down ---- */
+
+.arcade-column-left.bt-side-burst {
+  animation: bt-burst-left var(--bt-dur, 1100ms) cubic-bezier(0.2, 0.8, 0.3, 1) 1 both;
+}
+
+.arcade-column-right.bt-side-burst {
+  animation: bt-burst-right var(--bt-dur, 1100ms) cubic-bezier(0.2, 0.8, 0.3, 1) 1 both;
+}
+
+.bt-header-burst {
+  animation: bt-burst-header var(--bt-dur, 1100ms) cubic-bezier(0.2, 0.8, 0.3, 1) 1 both;
+}
+
+.bt-board-burst {
+  animation: bt-burst-board var(--bt-dur, 1100ms) cubic-bezier(0.2, 0.8, 0.3, 1) 1 both;
+}
+
+@keyframes bt-burst-left {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; filter: brightness(1); }
+  8% { transform: translate(5px, -4px) rotate(-1deg) scale(1.04); filter: brightness(2.6); }
+  25% { transform: translate(-16px, 8px) rotate(-4deg) scale(1.06); }
+  55% { transform: translate(-90px, -40px) rotate(-10deg) scale(1.08); opacity: 0.4; }
+  100% { transform: translate(-220px, -30px) rotate(-16deg) scale(1.1); opacity: 0; }
+}
+
+@keyframes bt-burst-right {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; filter: brightness(1); }
+  8% { transform: translate(-5px, -4px) rotate(1deg) scale(1.04); filter: brightness(2.6); }
+  25% { transform: translate(16px, 8px) rotate(4deg) scale(1.06); }
+  55% { transform: translate(90px, -40px) rotate(10deg) scale(1.08); opacity: 0.4; }
+  100% { transform: translate(220px, -30px) rotate(16deg) scale(1.1); opacity: 0; }
+}
+
+@keyframes bt-burst-header {
+  0% { transform: translateY(0) scale(1); opacity: 1; filter: brightness(1); }
+  8% { filter: brightness(2.6); }
+  30% { transform: translateY(-16px) scale(0.9); opacity: 0.7; }
+  100% { transform: translateY(-50px) scale(0.55); opacity: 0; }
+}
+
+.bt-header-burst .battle-header-rainbow,
+.bt-header-burst .battle-header-star {
+  animation: bt-deco-scatter var(--bt-dur, 1100ms) ease-out 1 both;
+}
+
+@keyframes bt-deco-scatter {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--bt-scatter-x, 70px), -100px) scale(1.8); opacity: 0; }
+}
+
+@keyframes bt-burst-board {
+  0% { transform: scale(1); opacity: 1; filter: brightness(1); }
+  8% { filter: brightness(2.8); }
+  30% { transform: scale(1.03); opacity: 0.5; }
+  100% { transform: scale(1.08); opacity: 0; }
+}
+
+/* ---- keyVisualAssembly / battleTextReveal / battleOpen: fully gone (see .bt-cabinet-*) ---- */

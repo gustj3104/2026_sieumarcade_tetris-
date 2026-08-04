@@ -54,6 +54,21 @@ export class ParticleSystem {
     }
   }
 
+  /** Small upward-drifting spark, used for the pre-burst "energy charge" beat. */
+  spawnRising(x: number, y: number, color: string): void {
+    this.particles.push({
+      x,
+      y,
+      vx: (Math.random() - 0.5) * 50,
+      vy: -110 - Math.random() * 160,
+      color,
+      life: 0,
+      maxLife: 300 + Math.random() * 250,
+      size: 2 + Math.random() * 2,
+      gravity: false,
+    });
+  }
+
   /** A particle that eases toward a fixed target instead of following physics. */
   spawnGather(fromX: number, fromY: number, toX: number, toY: number, color: string): void {
     this.particles.push({
