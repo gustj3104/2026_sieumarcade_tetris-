@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { engine, useGameSnapshot } from "../state/gameStore";
 import { GameRenderer } from "../rendering/renderer";
 import { PixelFrame } from "./PixelFrame";
+import { useBattleTransition } from "../hooks/useBattleTransition";
 
 /**
  * The board itself: a full-bleed canvas inside its own panel, driving its own
@@ -10,6 +11,7 @@ import { PixelFrame } from "./PixelFrame";
 export function GameBoard() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const snap = useGameSnapshot();
+  const { phase, style } = useBattleTransition();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -64,7 +66,7 @@ export function GameBoard() {
   }, []);
 
   return (
-    <PixelFrame className="board-panel">
+    <PixelFrame className={`board-panel bt-board bt-board-${phase}`} style={style}>
       <canvas ref={canvasRef} className="game-canvas" />
       {snap.phase === "paused" && <div className="board-overlay-message">PAUSED</div>}
       {snap.phase === "setup" && <div className="board-overlay-message">PRESS ESC FOR ADMIN</div>}

@@ -1,11 +1,12 @@
 import { useBattleTransition } from "../hooks/useBattleTransition";
 
 const ANNOUNCEMENTS: Partial<Record<ReturnType<typeof useBattleTransition>["phase"], string>> = {
-  allPlayersReady: "ALL PLAYERS READY",
+  playersReady: "ALL PLAYERS READY",
   charging: "ALL PLAYERS READY",
   readyPrompt: "READY?",
   burst: "READY?",
-  keyVisualReveal: "BATTLE STARTS NOW",
+  keyVisualAssembly: "BATTLE STARTS NOW",
+  battleTextReveal: "BATTLE STARTS NOW",
   battleOpen: "BATTLE STARTS NOW",
 };
 

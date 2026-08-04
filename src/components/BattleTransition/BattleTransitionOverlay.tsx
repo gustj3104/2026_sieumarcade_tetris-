@@ -1,22 +1,30 @@
 import { useBattleTransition } from "../../hooks/useBattleTransition";
-import { ReadyPrompt } from "./ReadyPrompt";
-import { BattleOpenScreen } from "./BattleOpenScreen";
+import { BattleParticleField } from "./BattleParticleField";
+import { PlayersReadyText } from "./PlayersReadyText";
+import { ReadyPromptText } from "./ReadyPromptText";
+import { KeyVisualStage } from "./KeyVisualStage";
 
 /**
- * Full-viewport pieces of the battle transition that need to sit above (and
- * outside) the board canvas + side panels: the READY? screen flash, and the
- * key-visual / BATTLE STARTS NOW hold screen. Everything else (ALL PLAYERS
- * READY text, the energy/burst effects on the board itself) lives in the
- * canvas renderer; the panel/header burst-and-fade lives as CSS classes on
- * LeftPanel/RightPanel/BattleHeader directly.
+ * Everything in the battle-open transition that needs to sit above (and
+ * outside) the board canvas + side panels: the particle field, the big
+ * screen-wide typography beats, and the key-visual/BATTLE STARTS NOW hold
+ * screen. The board's own charge-up glow and the panels' burst-apart CSS
+ * live with their real elements (renderer.ts, LeftPanel/RightPanel/
+ * BattleHeader) so each destroyed thing animates from its own real spot.
  */
 export function BattleTransitionOverlay() {
-  const { phase, logoUrl, style } = useBattleTransition();
+  const { phase, logoUrl } = useBattleTransition();
 
   return (
-    <div className={`bt-overlay bt-overlay-${phase}`} style={style} aria-hidden="true">
-      {phase === "readyPrompt" && <ReadyPrompt />}
-      {(phase === "keyVisualReveal" || phase === "battleOpen") && <BattleOpenScreen logoUrl={logoUrl} />}
-    </div>
+    <>
+      <BattleParticleField />
+      <div className={`bt-overlay bt-overlay-${phase}`} aria-hidden="true">
+        {phase === "playersReady" && <PlayersReadyText />}
+        {phase === "readyPrompt" && <ReadyPromptText />}
+        {(phase === "keyVisualAssembly" || phase === "battleTextReveal" || phase === "battleOpen") && (
+          <KeyVisualStage logoUrl={logoUrl} />
+        )}
+      </div>
+    </>
   );
 }

@@ -1,26 +1,35 @@
 /**
- * Single source of truth for the post-finale "battle transition" timeline
- * (the celebratory hand-off from the auto-playing tetris show to the live
- * band battle). Every component/module that needs a duration reads from
- * here instead of hard-coding its own copy in CSS or TS.
+ * Single source of truth for the post-finale "battle open" timeline (the
+ * hand-off from the auto-playing tetris show to the live band battle).
+ * Every module that needs a duration - the engine's finale step machine,
+ * the particle field, and the DOM/CSS transition components - reads from
+ * here instead of keeping its own copy.
+ *
+ * `settle` is not a fixed timer: the engine already waits for the falling
+ * piece to land (and any line-clear it triggers) before starting the
+ * timeline below, which is more correct than a flat 600ms. It's listed
+ * here only as the documented nominal length referenced by the design.
  */
-export const BATTLE_TRANSITION_TIMING = {
-  allPlayersReady: 800,
-  charging: 1000,
+export const BATTLE_OPEN_TIMING = {
+  settle: 600,
+  playersReady: 800,
+  charging: 1200,
   readyPrompt: 500,
-  burst: 1200,
-  keyVisualReveal: 1500,
+  burst: 1100,
+  keyVisualAssembly: 1500,
+  battleTextReveal: 800,
 } as const;
 
-export type BattleTransitionStep = keyof typeof BATTLE_TRANSITION_TIMING;
+export type BattleTransitionStep = Exclude<keyof typeof BATTLE_OPEN_TIMING, "settle">;
 
 export const BATTLE_TRANSITION_ORDER: BattleTransitionStep[] = [
-  "allPlayersReady",
+  "playersReady",
   "charging",
   "readyPrompt",
   "burst",
-  "keyVisualReveal",
+  "keyVisualAssembly",
+  "battleTextReveal",
 ];
 
-/** Full-phase list including the pre-timeline settle and the persistent post-timeline hold. */
-export type BattleTransitionPhase = "idle" | BattleTransitionStep | "battleOpen";
+/** Full DOM-facing phase list including the idle/settle bookends and the persistent post-timeline hold. */
+export type BattleTransitionPhase = "idle" | "settling" | BattleTransitionStep | "battleOpen";

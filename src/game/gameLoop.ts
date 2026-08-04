@@ -25,22 +25,23 @@ import { createBagGenerator, SHAPE_BOX } from "./tetrominoes";
 import { createNameBlock } from "./nameBlockFactory";
 import { lineClearScore, SCORE_LOCK } from "./scoring";
 import { shuffle } from "../utils/shuffle";
-import { BATTLE_TRANSITION_ORDER, BATTLE_TRANSITION_TIMING } from "../effects/battleTransition/transitionTimeline";
+import { BATTLE_OPEN_TIMING, BATTLE_TRANSITION_ORDER } from "../effects/battleTransition/transitionTimeline";
 
 export const CLEAR_ANIMATION_MS = 400;
 const MAX_FRAME_DT_MS = 100; // guards against huge jumps after a backgrounded tab
 
 /**
  * The finale timeline (board settles -> ALL PLAYERS READY -> energy charge
- * -> READY? -> full-screen burst -> key visual reveal) reuses the single
- * BATTLE_TRANSITION_TIMING config so CSS/canvas/engine never drift apart.
- * Once the sequence finishes, `phase` becomes "completed" and `finaleStep`
- * stays pinned on the last entry ("keyVisualReveal") forever - the renderer
- * treats that as the persistent "battle open" hold screen.
+ * -> READY? -> full-screen burst -> key visual assembly -> BATTLE STARTS
+ * NOW) reuses the single BATTLE_OPEN_TIMING config so the particle field,
+ * CSS, and engine never drift apart. Once the sequence finishes, `phase`
+ * becomes "completed" and `finaleStep` stays pinned on the last entry
+ * ("battleTextReveal") forever - the renderer/overlay treat that as the
+ * persistent "battle open" hold screen.
  */
 export const FINALE_ORDER: FinaleStep[] = BATTLE_TRANSITION_ORDER;
 
-export const FINALE_DURATIONS: Record<Exclude<FinaleStep, "none">, number> = BATTLE_TRANSITION_TIMING;
+export const FINALE_DURATIONS: Record<Exclude<FinaleStep, "none">, number> = BATTLE_OPEN_TIMING;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
