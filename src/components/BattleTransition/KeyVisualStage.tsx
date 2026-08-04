@@ -1,5 +1,5 @@
 import { useBattleTransition } from "../../hooks/useBattleTransition";
-import bundledKeyVisual from "../../assets/keyvisual.svg";
+import bundledKeyVisual from "../../assets/keyvisual.png";
 
 interface KeyVisualStageProps {
   logoUrl: string | null;
@@ -13,9 +13,10 @@ interface KeyVisualStageProps {
  * through - it plays once, then the same element just keeps breathing.
  *
  * Asset priority: an admin-uploaded logo (AdminPanel "행사 로고", the
- * highest-priority override at event time) beats the bundled default
- * (src/assets/keyvisual.svg, imported so Vite resolves it under the
- * GitHub Pages base path automatically - never a hardcoded absolute path).
+ * highest-priority override at event time) beats the bundled default -
+ * the actual official key visual PNG (src/assets/keyvisual.png, imported
+ * so Vite resolves it under the GitHub Pages base path automatically -
+ * never a hardcoded absolute path).
  */
 export function KeyVisualStage({ logoUrl }: KeyVisualStageProps) {
   const { phase } = useBattleTransition();

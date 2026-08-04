@@ -187,10 +187,13 @@
 .bt-keyvisual-img {
   position: relative;
   z-index: 1;
-  width: min(82vw, 145vh);
+  /* Only max-width/max-height (no width/min-width) so the real image's own
+     aspect ratio decides the fit - the wide official artwork would otherwise
+     fight a fixed width target against the 65vh height cap. */
   max-width: 85vw;
-  max-height: 65vh;
-  min-width: 70vw;
+  max-height: 68vh;
+  width: auto;
+  height: auto;
   object-fit: contain;
   image-rendering: auto;
   filter: drop-shadow(0 10px 0 rgba(0, 0, 0, 0.55));
