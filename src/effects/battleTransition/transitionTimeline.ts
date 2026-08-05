@@ -11,13 +11,13 @@
  * here only as the documented nominal length referenced by the design.
  */
 export const BATTLE_OPEN_TIMING = {
-  settle: 600,
-  playersReady: 800,
-  charging: 1200,
-  readyPrompt: 500,
-  burst: 1100,
-  keyVisualAssembly: 1500,
-  battleTextReveal: 800,
+  settle: 1200,
+  playersReady: 1600,
+  charging: 2400,
+  readyPrompt: 1000,
+  burst: 2200,
+  keyVisualAssembly: 3000,
+  battleTextReveal: 1600,
 } as const;
 
 export type BattleTransitionStep = Exclude<keyof typeof BATTLE_OPEN_TIMING, "settle">;

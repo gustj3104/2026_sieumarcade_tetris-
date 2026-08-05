@@ -5,7 +5,7 @@ import { BattleParticleSystem } from "../../effects/battleTransition/battleParti
 import { triggerBattleBurst } from "../../effects/battleTransition/burstSources";
 
 const PALETTE = ["#e73716", "#ffc400", "#18bfe8", "#4bad16", "#f28c00", "#8734c5"];
-const BATTLE_OPEN_AMBIENT_FIRST_DELAY = 2000;
+const BATTLE_OPEN_AMBIENT_FIRST_DELAY = 4000;
 
 function randomEdgePoint(w: number, h: number): { x: number; y: number } {
   const side = Math.floor(Math.random() * 4);
@@ -120,7 +120,7 @@ export function BattleParticleField() {
           vy: Math.sin(angle) * speed,
           size: 5 + Math.random() * 6,
           color: Math.random() < 0.5 ? "#ffffff" : PALETTE[Math.floor(Math.random() * PALETTE.length)],
-          lifetime: 450 + Math.random() * 300,
+          lifetime: 900 + Math.random() * 600,
         };
       });
       return;
@@ -146,8 +146,8 @@ export function BattleParticleField() {
           vy: Math.sin(angle) * speed,
           size: 6 + Math.random() * 8,
           color: PALETTE[Math.floor(Math.random() * PALETTE.length)],
-          lifetime: 380 + Math.random() * 260,
-          delay: Math.random() * 250,
+          lifetime: 760 + Math.random() * 520,
+          delay: Math.random() * 500,
         };
       });
       // ...then, once it's assembled, stars/streaks radiate back out from behind it.
@@ -162,8 +162,8 @@ export function BattleParticleField() {
           vy: Math.sin(angle) * speed,
           size: 4 + Math.random() * 6,
           color: PALETTE[Math.floor(Math.random() * PALETTE.length)],
-          lifetime: 650 + Math.random() * 450,
-          delay: 750 + Math.random() * 250,
+          lifetime: 1300 + Math.random() * 900,
+          delay: 1500 + Math.random() * 500,
         };
       });
       return;
@@ -183,7 +183,7 @@ export function BattleParticleField() {
           vy: Math.sin(angle) * speed,
           size: 4 + Math.random() * 6,
           color: PALETTE[Math.floor(Math.random() * PALETTE.length)],
-          lifetime: 500 + Math.random() * 400,
+          lifetime: 1000 + Math.random() * 800,
         };
       });
       nextAmbientAtRef.current = performance.now() + BATTLE_OPEN_AMBIENT_FIRST_DELAY;

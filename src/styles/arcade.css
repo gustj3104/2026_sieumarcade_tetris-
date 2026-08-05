@@ -80,28 +80,29 @@
   background: var(--panel-bg);
 }
 
-.battle-header-see {
-  font-family: var(--font-pixel);
-  color: var(--text-white);
-  font-size: clamp(9px, 1.1vw, 16px);
-  letter-spacing: 0.35em;
-  text-indent: 0.35em;
-  margin-bottom: clamp(4px, 0.8vh, 10px);
-}
-
 .battle-header-logo-wrap {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: clamp(8px, 1.4vw, 22px);
   padding: 4px 18px;
+}
+
+.battle-header-word {
+  font-family: var(--font-pixel);
+  font-weight: 700;
+  color: var(--accent-yellow);
+  font-size: clamp(16px, 3vw, 44px);
+  letter-spacing: 0.04em;
+  line-height: 1;
 }
 
 .battle-header-logo-img {
   display: block;
   height: clamp(40px, 7vh, 92px);
   width: auto;
-  max-width: 92%;
+  max-width: 60%;
   object-fit: contain;
 }
 
