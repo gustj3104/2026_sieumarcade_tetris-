@@ -21,7 +21,7 @@ import {
   removeRows,
 } from "./board";
 import { chooseBestPlacement, hasSafePlacement } from "./autoPlacement";
-import { createBagGenerator, SHAPE_BOX } from "./tetrominoes";
+import { createBagGenerator, getShapeCells, SHAPE_BOX } from "./tetrominoes";
 import { createNameBlock } from "./nameBlockFactory";
 import { lineClearScore, SCORE_LOCK } from "./scoring";
 import { shuffle } from "../utils/shuffle";
@@ -74,8 +74,23 @@ export function getPieceVisualState(piece: ActivePiece, clock: number): PieceVis
   const fallT = Math.pow(t, 1.6);
   const y = piece.startY + (piece.targetY - piece.startY) * fallT;
   const xT = clamp((t - X_MOVE_START_T) / (X_MOVE_END_T - X_MOVE_START_T), 0, 1);
-  const x = piece.startX + (piece.targetX - piece.startX) * easeOutCubic(xT);
   const rotation = t < ROTATION_SWITCH_T ? piece.startRotation : piece.targetRotation;
+  let x = piece.startX + (piece.targetX - piece.startX) * easeOutCubic(xT);
+
+  // x eases toward targetX (chosen for targetRotation's footprint) while the
+  // rotation flip itself doesn't land until t >= ROTATION_SWITCH_T. Without
+  // this, the still-unrotated shape can briefly render past the board's
+  // left/right edge while x is already most of the way to its target. Clamp
+  // against the *currently displayed* rotation's real cell bounds so the
+  // piece never draws outside the board during that in-between window.
+  let minDx = 0;
+  let maxDx = 0;
+  for (const [dx] of getShapeCells(piece.type, rotation)) {
+    if (dx < minDx) minDx = dx;
+    if (dx > maxDx) maxDx = dx;
+  }
+  x = clamp(x, -minDx, BOARD_COLS - 1 - maxDx);
+
   return { x, y, rotation, progress: t };
 }
 
