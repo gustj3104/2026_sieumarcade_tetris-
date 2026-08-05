@@ -80,88 +80,30 @@
   background: var(--panel-bg);
 }
 
-.battle-header-see {
-  font-family: var(--font-pixel);
-  color: var(--text-white);
-  font-size: clamp(9px, 1.1vw, 16px);
-  letter-spacing: 0.35em;
-  text-indent: 0.35em;
-  margin-bottom: clamp(4px, 0.8vh, 10px);
-}
-
 .battle-header-logo-wrap {
   position: relative;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6px 18px;
+  gap: clamp(8px, 1.4vw, 22px);
+  padding: 4px 18px;
 }
 
-.battle-header-rainbow {
-  position: absolute;
-  top: -6px;
-  left: 50%;
-  width: min(70%, 420px);
-  height: 46%;
-  transform: translateX(-38%);
-  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
-  background: conic-gradient(
-    from 180deg at 50% 100%,
-    var(--accent-red) 0deg 36deg,
-    var(--accent-orange) 36deg 72deg,
-    var(--accent-yellow) 72deg 108deg,
-    var(--block-green) 108deg 144deg,
-    var(--accent-cyan) 144deg 180deg
-  );
-  -webkit-mask: radial-gradient(circle at 50% 100%, transparent 55%, #000 56%);
-  mask: radial-gradient(circle at 50% 100%, transparent 55%, #000 56%);
-  opacity: 0.9;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.battle-header-star {
-  position: absolute;
-  top: -10%;
-  right: 6%;
-  width: clamp(28px, 4vw, 56px);
-  height: clamp(28px, 4vw, 56px);
-  background: var(--text-white);
-  clip-path: polygon(
-    50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%,
-    21% 91%, 32% 57%, 2% 35%, 39% 35%
-  );
-  opacity: 0.85;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.battle-header-logo {
-  position: relative;
-  z-index: 1;
+.battle-header-word {
   font-family: var(--font-pixel);
   font-weight: 700;
-  font-size: clamp(22px, 4vw, 58px);
-  letter-spacing: 0.02em;
+  color: var(--accent-yellow);
+  font-size: clamp(16px, 3vw, 44px);
+  letter-spacing: 0.04em;
   line-height: 1;
-  transform: skewX(-10deg);
-  background: linear-gradient(180deg, #fff6cf 0%, var(--accent-yellow) 30%, var(--accent-orange) 62%, var(--accent-red) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  -webkit-text-stroke: 1.5px var(--text-white);
-  paint-order: stroke fill;
-  text-shadow:
-    3px 3px 0 #000,
-    5px 5px 0 rgba(0, 0, 0, 0.6);
 }
 
-.battle-header-sub {
-  margin-top: clamp(4px, 0.8vh, 10px);
-  font-family: var(--font-pixel);
-  color: var(--accent-cyan);
-  font-size: clamp(8px, 1vw, 14px);
-  letter-spacing: 0.18em;
+.battle-header-logo-img {
+  display: block;
+  height: clamp(40px, 7vh, 92px);
+  width: auto;
+  max-width: 60%;
+  object-fit: contain;
 }
 
 /* ---------------- Board panel ---------------- */

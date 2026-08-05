@@ -233,7 +233,7 @@ export class GameRenderer {
       const cx = layout.originX + layout.boardW / 2;
       const cy = layout.originY + layout.boardH / 2;
       const ringCount = 3;
-      const ringLife = 520;
+      const ringLife = 1040;
       const maxRadius = Math.max(layout.boardW, layout.boardH) * 0.62;
       ctx.save();
       for (let i = 0; i < ringCount; i++) {

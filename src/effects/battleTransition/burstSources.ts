@@ -31,7 +31,7 @@ function burstRect(
   if (rect.width <= 0 || rect.height <= 0) return;
   const [speedMin, speedMax] = opts.speed ?? [160, 420];
   const [sizeMin, sizeMax] = opts.size ?? [4, 10];
-  const [lifeMin, lifeMax] = opts.life ?? [650, 1100];
+  const [lifeMin, lifeMax] = opts.life ?? [1300, 2200];
   system.spawnBatch(count, (i) => {
     const x = rect.left + Math.random() * rect.width;
     const y = rect.top + Math.random() * rect.height;
@@ -49,7 +49,7 @@ function burstRect(
       size: sizeMin + Math.random() * (sizeMax - sizeMin),
       color: pick(colors, i),
       lifetime: lifeMin + Math.random() * (lifeMax - lifeMin),
-      delay: (opts.delay ?? 0) + Math.random() * 60,
+      delay: (opts.delay ?? 0) + Math.random() * 120,
     };
   });
 }
@@ -88,8 +88,8 @@ export function triggerBattleBurst(system: BattleParticleSystem, snapshot: GameS
             vy: Math.sin(angle) * speed,
             size: layout.cellSize * (0.22 + Math.random() * 0.22),
             color: palette.light,
-            lifetime: 700 + Math.random() * 550,
-            delay: Math.random() * 90,
+            lifetime: 1400 + Math.random() * 1100,
+            delay: Math.random() * 180,
           };
         });
       }
@@ -116,8 +116,8 @@ export function triggerBattleBurst(system: BattleParticleSystem, snapshot: GameS
         vy: Math.sin(angle) * (260 + Math.random() * 260),
         size: 10 + Math.random() * 10,
         color: BRICK,
-        lifetime: 750 + Math.random() * 400,
-        delay: Math.random() * 80,
+        lifetime: 1500 + Math.random() * 800,
+        delay: Math.random() * 160,
       }));
     }
   }
@@ -131,41 +131,41 @@ export function triggerBattleBurst(system: BattleParticleSystem, snapshot: GameS
     burstRect(system, rect, 8, [pick(PALETTE_COLORS, i), pick(PALETTE_COLORS, i + 2)], "blockPixel", {
       biasAngle,
       biasSpread: 0.9,
-      delay: 70 + i * 20,
+      delay: 140 + i * 40,
       speed: [200, 460],
     });
   });
   for (const rect of queryRects(document, '[data-bt-unit="player-name"]')) {
-    burstRect(system, rect, 10, [ORANGE, WHITE], "textPixel", { biasAngle: Math.PI * 1.5, biasSpread: 1.4, delay: 140 });
+    burstRect(system, rect, 10, [ORANGE, WHITE], "textPixel", { biasAngle: Math.PI * 1.5, biasSpread: 1.4, delay: 280 });
   }
   for (const rect of queryRects(document, '[data-bt-unit="player-heart"]')) {
-    burstRect(system, rect, 4, ["#ff5a6a", WHITE], "star", { biasAngle: Math.PI * 1.5, biasSpread: 1.4, delay: 140, speed: [120, 260] });
+    burstRect(system, rect, 4, ["#ff5a6a", WHITE], "star", { biasAngle: Math.PI * 1.5, biasSpread: 1.4, delay: 280, speed: [120, 260] });
   }
   for (const rect of queryRects(document, '[data-bt-unit="left-frame"]')) {
-    burstRect(system, rect, 14, [BRICK, "#777777"], "brick", { biasAngle: Math.PI, biasSpread: 1.6, delay: 20, size: [8, 16] });
+    burstRect(system, rect, 14, [BRICK, "#777777"], "brick", { biasAngle: Math.PI, biasSpread: 1.6, delay: 40, size: [8, 16] });
   }
 
   // --- Right panel: STATS, NEXT PLAYERS, KEY GUIDE - flung up/down-right. ---
   for (const rect of queryRects(document, '[data-bt-unit="stats-row"]')) {
-    burstRect(system, rect, 10, [YELLOW, WHITE, ORANGE], "textPixel", { biasAngle: Math.PI * -0.2, biasSpread: 1.1, delay: 40 });
+    burstRect(system, rect, 10, [YELLOW, WHITE, ORANGE], "textPixel", { biasAngle: Math.PI * -0.2, biasSpread: 1.1, delay: 80 });
   }
   queryRects(document, '[data-bt-unit="next-players-row"]').forEach((rect, i) => {
     burstRect(system, rect, 6, [pick(PALETTE_COLORS, i + 1)], "streak", {
       biasAngle: Math.PI * -0.2,
       biasSpread: 0.9,
-      delay: 110 + i * 20,
+      delay: 220 + i * 40,
       speed: [260, 520],
     });
   });
   for (const rect of queryRects(document, '[data-bt-unit="key-guide-row"]')) {
-    burstRect(system, rect, 6, [WHITE, CYAN], "brick", { biasAngle: Math.PI * -0.1, biasSpread: 1.0, delay: 180, size: [6, 12] });
+    burstRect(system, rect, 6, [WHITE, CYAN], "brick", { biasAngle: Math.PI * -0.1, biasSpread: 1.0, delay: 360, size: [6, 12] });
   }
   for (const rect of queryRects(document, '[data-bt-unit="right-frame"]')) {
-    burstRect(system, rect, 14, [BRICK, "#777777"], "brick", { biasAngle: 0, biasSpread: 1.6, delay: 20, size: [8, 16] });
+    burstRect(system, rect, 14, [BRICK, "#777777"], "brick", { biasAngle: 0, biasSpread: 1.6, delay: 40, size: [8, 16] });
   }
 
   // --- Header: rainbow + star decorations scatter; wordmark itself is CSS-shrunk, not exploded. ---
   for (const rect of queryRects(document, '[data-bt-unit="header-deco"]')) {
-    burstRect(system, rect, 16, [YELLOW, ORANGE, CYAN, WHITE], "star", { biasAngle: -Math.PI / 2, biasSpread: 1.6, delay: 10, speed: [180, 380] });
+    burstRect(system, rect, 16, [YELLOW, ORANGE, CYAN, WHITE], "star", { biasAngle: -Math.PI / 2, biasSpread: 1.6, delay: 20, speed: [180, 380] });
   }
 }
