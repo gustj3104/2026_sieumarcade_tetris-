@@ -399,7 +399,6 @@
   to { border-top-color: var(--accent-orange); }
 }
 
-.bt-header-charging .battle-header-logo-img,
 .bt-header-charging .battle-header-word {
   animation: bt-title-pulse var(--bt-dur, 2400ms) ease-in-out infinite;
 }
