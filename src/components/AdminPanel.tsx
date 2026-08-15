@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { engine, useGameSnapshot } from "../state/gameStore";
 import { parseParticipants, MAX_PARTICIPANTS } from "../utils/nameParser";
+import { parseExcelNames } from "../utils/excelParser";
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -20,6 +21,9 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
   const [truncated, setTruncated] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [logoName, setLogoName] = useState<string | null>(null);
+  const [excelName, setExcelName] = useState<string | null>(null);
+  const [excelError, setExcelError] = useState<string | null>(null);
+  const [excelLoading, setExcelLoading] = useState(false);
   const confirmTimer = useRef<number | null>(null);
 
   useEffect(() => {
@@ -33,6 +37,33 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
     setDuplicates(result.duplicates);
     setTruncated(result.truncated);
     engine.loadParticipants(result.participants);
+  }
+
+  async function handleExcelUpload(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file later
+    if (!file) return;
+
+    setExcelError(null);
+    setExcelLoading(true);
+    try {
+      const names = await parseExcelNames(file);
+      if (names.length === 0) {
+        setExcelError("엑셀 첫 번째 열에서 이름을 찾지 못했습니다.");
+        return;
+      }
+      const joined = names.join("\n");
+      const result = parseParticipants(joined);
+      setText(joined);
+      setDuplicates(result.duplicates);
+      setTruncated(result.truncated);
+      engine.loadParticipants(result.participants);
+      setExcelName(file.name);
+    } catch (error) {
+      setExcelError(error instanceof Error ? error.message : "엑셀 파일을 읽는 중 오류가 발생했습니다.");
+    } finally {
+      setExcelLoading(false);
+    }
   }
 
   function handleEndClick() {
@@ -99,6 +130,14 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
           {duplicates.length > 0 && (
             <p className="admin-warning">중복된 이름 {duplicates.length}건: {duplicates.join(", ")}</p>
           )}
+
+          <div className="admin-row">
+            <input type="file" accept=".xlsx" onChange={handleExcelUpload} disabled={excelLoading} />
+            <span className="admin-hint">엑셀(.xlsx) 첫 번째 열의 이름을 자동으로 불러옵니다</span>
+          </div>
+          {excelLoading && <p className="admin-hint">엑셀 파일을 읽는 중...</p>}
+          {excelName && !excelLoading && !excelError && <p className="admin-hint">불러옴: {excelName}</p>}
+          {excelError && <p className="admin-warning">{excelError}</p>}
         </section>
 
         <section className="admin-section admin-controls">
