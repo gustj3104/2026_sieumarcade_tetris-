@@ -4,27 +4,17 @@ import { TETROMINO_COLORS, getShapeCells } from "./tetrominoes";
 import type { ActivePiece } from "../types/game";
 
 /**
- * Splits a participant's name into the 4 cell strings of a tetromino, per
- * spec section 7:
- *  - 1-4 chars: one character per cell, remaining cells are blank.
- *  - 5+ chars: never split across blocks; instead pack up to 2 characters
- *    per cell (4 cells x 2 chars = 8 char budget) so the whole name still
- *    rides on a single piece.
+ * Splits a participant's name into the 4 cell strings of a tetromino - one
+ * character per cell, always. Names up to 4 characters fill one cell each
+ * with the rest left blank; longer names only show their first 4
+ * characters here (the full name still displays elsewhere - see
+ * ABBREVIATE_THRESHOLD in utils/nameParser.ts).
  */
 export function splitNameIntoCells(cellSource: string): string[] {
   const clean = cellSource.replace(/\s+/g, "");
-  if (clean.length === 0) return ["", "", "", ""];
-  if (clean.length <= 4) {
-    const chars = clean.split("");
-    while (chars.length < 4) chars.push("");
-    return chars;
-  }
-  const perCell = 2;
-  const cells: string[] = [];
-  for (let i = 0; i < 4; i++) {
-    cells.push(clean.slice(i * perCell, i * perCell + perCell));
-  }
-  return cells;
+  const chars = clean.slice(0, 4).split("");
+  while (chars.length < 4) chars.push("");
+  return chars;
 }
 
 export function buildPieceCells(participant: Participant): PieceCellDef[] {

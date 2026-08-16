@@ -15,11 +15,12 @@ function nextId(): string {
 }
 
 /**
- * Names longer than this get an auto-generated abbreviation as the
- * cell-fill source; the full original name is always kept on the
- * participant record for landing-highlight display.
+ * A tetromino has 4 cells and each cell shows exactly one character, so
+ * only a name's first 4 characters ever reach the board. The full original
+ * name is always kept on the participant record for the PLAYER panel /
+ * landing-highlight display, which isn't cell-limited.
  */
-const ABBREVIATE_THRESHOLD = 8;
+const ABBREVIATE_THRESHOLD = 4;
 
 function buildCellSource(name: string): string {
   const clean = name.replace(/\s+/g, "");
